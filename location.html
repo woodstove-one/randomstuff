@@ -152,15 +152,15 @@
         let map;
         let marker;
         let accuracyCircle;
-        let historyPoints = [];
-        let pathLine = null;
+        let pathLine;
 
-        const historyOutput = document.getElementById("historyOutput");
-        const copyBtn = document.getElementById("copyBtn");
-        const clearBtn = document.getElementById("clearBtn");
+        let historyPoints = [];
 
         const statusEl = document.getElementById("status");
         const locateBtn = document.getElementById("locateBtn");
+        const historyOutput = document.getElementById("historyOutput");
+        const copyBtn = document.getElementById("copyBtn");
+        const clearBtn = document.getElementById("clearBtn");
 
         function setStatus(message) {
             statusEl.textContent = message;
@@ -174,8 +174,9 @@
                     maxZoom: 19,
                     attribution: "&copy; OpenStreetMap contributors"
                 }).addTo(map);
-            } else {
-                map.setView([lat, lng], map.getZoom());
+
+                // Create the trail line AFTER the map exists
+                pathLine = L.polyline([], { color: "#38bdf8", weight: 4 }).addTo(map);
             }
 
             if (!marker) {
@@ -205,13 +206,10 @@
             initMap(latitude, longitude);
             updateAccuracyCircle(latitude, longitude, accuracy);
 
-            setStatus(
-                `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)} (±${Math.round(
-                    accuracy
-                )} m)`
-            );
+            // Add to trail
+            pathLine.addLatLng([latitude, longitude]);
 
-            // Add to history
+            // Add to history list
             historyPoints.push({
                 lat: latitude,
                 lng: longitude,
@@ -219,14 +217,14 @@
                 time: Date.now()
             });
 
-            // Update the trail line
-            pathLine.addLatLng([latitude, longitude]);
-
-            // Update the visible list
+            // Update visible list
             historyOutput.textContent = historyPoints
                 .map(p => `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}, ±${Math.round(p.acc)}m, ${new Date(p.time).toLocaleTimeString()}`)
                 .join("\n");
 
+            setStatus(
+                `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)} (±${Math.round(accuracy)} m)`
+            );
         }
 
         function handleError(error) {
@@ -234,36 +232,36 @@
 
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    setStatus("Location permission denied. Enable it in your browser settings.");
+                    setStatus("Location permission denied.");
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    setStatus("Location unavailable. Try moving to an open area.");
+                    setStatus("Location unavailable.");
                     break;
                 case error.TIMEOUT:
-                    setStatus("Location request timed out. Try again.");
+                    setStatus("Location request timed out.");
                     break;
                 default:
-                    setStatus("Unknown error getting location.");
+                    setStatus("Unknown error.");
             }
         }
 
         function startTracking() {
             if (!("geolocation" in navigator)) {
-                setStatus("Geolocation is not supported on this device/browser.");
+                setStatus("Geolocation not supported.");
                 return;
             }
 
             setStatus("Requesting location…");
             locateBtn.disabled = true;
 
-            // Watch position for live updates
             navigator.geolocation.watchPosition(handlePosition, handleError, {
                 enableHighAccuracy: true,
-                maximumAge: 1000,
-                timeout: 20000
+                maximumAge: 0,
+                timeout: 10000
             });
         }
 
+        // Copy button
         copyBtn.addEventListener("click", () => {
             const text = historyPoints
                 .map(p => `${p.lat}, ${p.lng}, ${p.acc}, ${p.time}`)
@@ -274,14 +272,15 @@
                 .catch(() => alert("Copy failed"));
         });
 
+        // Clear button
         clearBtn.addEventListener("click", () => {
             historyPoints = [];
             historyOutput.textContent = "";
             if (pathLine) pathLine.setLatLngs([]);
         });
 
-
         locateBtn.addEventListener("click", startTracking);
+
     </script>
 </body>
 
