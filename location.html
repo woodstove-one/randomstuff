@@ -83,6 +83,42 @@
         .leaflet-container {
             background: #020617;
         }
+
+        #historyContainer {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #0f172a;
+            border-radius: 0.75rem;
+            border: 1px solid #1e293b;
+        }
+
+        #historyButtons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        #copyBtn,
+        #clearBtn {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #334155;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        #copyBtn:active,
+        #clearBtn:active {
+            transform: translateY(1px);
+        }
+
+        #historyOutput {
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
     </style>
 </head>
 
@@ -95,6 +131,17 @@
         <button id="locateBtn">Locate Me</button>
         <div id="status"></div>
         <div id="map"></div>
+        <div id="historyContainer">
+            <h2>Recorded Locations</h2>
+
+            <div id="historyButtons">
+                <button id="copyBtn">Copy List</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+
+            <pre id="historyOutput"></pre>
+        </div>
+
     </main>
 
     <!-- Leaflet JS -->
@@ -105,6 +152,12 @@
         let map;
         let marker;
         let accuracyCircle;
+        let historyPoints = [];
+        let pathLine = null;
+
+        const historyOutput = document.getElementById("historyOutput");
+        const copyBtn = document.getElementById("copyBtn");
+        const clearBtn = document.getElementById("clearBtn");
 
         const statusEl = document.getElementById("status");
         const locateBtn = document.getElementById("locateBtn");
@@ -157,6 +210,23 @@
                     accuracy
                 )} m)`
             );
+
+            // Add to history
+            historyPoints.push({
+                lat: latitude,
+                lng: longitude,
+                acc: accuracy,
+                time: Date.now()
+            });
+
+            // Update the trail line
+            pathLine.addLatLng([latitude, longitude]);
+
+            // Update the visible list
+            historyOutput.textContent = historyPoints
+                .map(p => `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}, ±${Math.round(p.acc)}m, ${new Date(p.time).toLocaleTimeString()}`)
+                .join("\n");
+
         }
 
         function handleError(error) {
@@ -193,6 +263,23 @@
                 timeout: 20000
             });
         }
+
+        copyBtn.addEventListener("click", () => {
+            const text = historyPoints
+                .map(p => `${p.lat}, ${p.lng}, ${p.acc}, ${p.time}`)
+                .join("\n");
+
+            navigator.clipboard.writeText(text)
+                .then(() => alert("Copied!"))
+                .catch(() => alert("Copy failed"));
+        });
+
+        clearBtn.addEventListener("click", () => {
+            historyPoints = [];
+            historyOutput.textContent = "";
+            if (pathLine) pathLine.setLatLngs([]);
+        });
+
 
         locateBtn.addEventListener("click", startTracking);
     </script>
