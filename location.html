@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>GPS Location Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: #111827;
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1rem;
+            text-align: center;
+            background: #020617;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 0.75rem;
+        }
+
+        #locateBtn {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: #2563eb;
+            color: #f9fafb;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+            transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        #locateBtn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        #locateBtn:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        #status {
+            min-height: 1.5rem;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        #map {
+            flex: 1;
+            min-height: 300px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #1f2937;
+        }
+
+        /* Leaflet dark-ish tweaks */
+        .leaflet-container {
+            background: #020617;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>GPS Location Tracker</h1>
+    </header>
+
+    <main>
+        <button id="locateBtn">Locate Me</button>
+        <div id="status"></div>
+        <div id="map"></div>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        let map;
+        let marker;
+        let accuracyCircle;
+
+        const statusEl = document.getElementById("status");
+        const locateBtn = document.getElementById("locateBtn");
+
+        function setStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        function initMap(lat, lng) {
+            if (!map) {
+                map = L.map("map").setView([lat, lng], 16);
+
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    maxZoom: 19,
+                    attribution: "&copy; OpenStreetMap contributors"
+                }).addTo(map);
+            } else {
+                map.setView([lat, lng], map.getZoom());
+            }
+
+            if (!marker) {
+                marker = L.marker([lat, lng]).addTo(map);
+            } else {
+                marker.setLatLng([lat, lng]);
+            }
+        }
+
+        function updateAccuracyCircle(lat, lng, accuracy) {
+            if (!accuracyCircle) {
+                accuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    color: "#60a5fa",
+                    fillColor: "#3b82f6",
+                    fillOpacity: 0.2
+                }).addTo(map);
+            } else {
+                accuracyCircle.setLatLng([lat, lng]);
+                accuracyCircle.setRadius(accuracy);
+            }
+        }
+
+        function handlePosition(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+
+            initMap(latitude, longitude);
+            updateAccuracyCircle(latitude, longitude, accuracy);
+
+            setStatus(
+                `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)} (±${Math.round(
+                    accuracy
+                )} m)`
+            );
+        }
+
+        function handleError(error) {
+            locateBtn.disabled = false;
+
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    setStatus("Location permission denied. Enable it in your browser settings.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    setStatus("Location unavailable. Try moving to an open area.");
+                    break;
+                case error.TIMEOUT:
+                    setStatus("Location request timed out. Try again.");
+                    break;
+                default:
+                    setStatus("Unknown error getting location.");
+            }
+        }
+
+        function startTracking() {
+            if (!("geolocation" in navigator)) {
+                setStatus("Geolocation is not supported on this device/browser.");
+                return;
+            }
+
+            setStatus("Requesting location…");
+            locateBtn.disabled = true;
+
+            // Watch position for live updates
+            navigator.geolocation.watchPosition(handlePosition, handleError, {
+                enableHighAccuracy: true,
+                maximumAge: 5000,
+                timeout: 20000
+            });
+        }
+
+        locateBtn.addEventListener("click", startTracking);
+    </script>
+</body>
+
+</html>
