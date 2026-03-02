@@ -189,7 +189,7 @@
             // Watch position for live updates
             navigator.geolocation.watchPosition(handlePosition, handleError, {
                 enableHighAccuracy: true,
-                maximumAge: 5000,
+                maximumAge: 1000,
                 timeout: 20000
             });
         }
