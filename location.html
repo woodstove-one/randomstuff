@@ -99,7 +99,8 @@
         }
 
         #copyBtn,
-        #clearBtn {
+        #clearBtn,
+        #exportSvgBtn {
             padding: 0.5rem 0.75rem;
             border: none;
             border-radius: 0.5rem;
@@ -130,6 +131,8 @@
 
             <div id="historyButtons">
                 <button id="copyBtn">Copy List</button>
+                <button id="exportSvgBtn">Export SVG file</button>
+                <button id="exportSvgBtn">Copy SVG to clipboard</button>
                 <button id="clearBtn">Clear</button>
             </div>
         </div>
@@ -153,6 +156,70 @@
         const historyOutput = document.getElementById("historyOutput");
         const copyBtn = document.getElementById("copyBtn");
         const clearBtn = document.getElementById("clearBtn");
+
+        function exportSVG() {
+            if (historyPoints.length < 2) return "";
+
+            const width = 800;
+            const height = 800;
+
+            const lats = historyPoints.map(p => p.lat);
+            const lngs = historyPoints.map(p => p.lng);
+
+            const minLat = Math.min(...lats);
+            const maxLat = Math.max(...lats);
+            const minLng = Math.min(...lngs);
+            const maxLng = Math.max(...lngs);
+
+            const latRange = maxLat - minLat || 1;
+            const lngRange = maxLng - minLng || 1;
+
+            const points = historyPoints.map(p => {
+                const x = ((p.lng - minLng) / lngRange) * width;
+                const y = height - ((p.lat - minLat) / latRange) * height;
+                return { x, y };
+            });
+
+            const pathData = points
+                .map((pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`))
+                .join(" ");
+
+            return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <path d="${pathData}" fill="none" stroke="#38bdf8" stroke-width="3" />
+</svg>
+    `.trim();
+        }
+
+        const exportSvgBtn = document.getElementById("exportSvgBtn");
+
+        exportSvgBtn.addEventListener("click", () => {
+            const svgText = exportSVG();
+            if (!svgText) {
+                alert("Not enough points to export.");
+                return;
+            }
+
+            const blob = new Blob([svgText], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "track.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById("exportSvgBtn").addEventListener("click", () => {
+            const svg = exportSVG();
+            navigator.clipboard.writeText(svg)
+                .then(() => alert("SVG copied!"))
+                .catch(() => alert("Copy failed"));
+        });
+
 
         function setStatus(message) {
             statusEl.textContent = message;
