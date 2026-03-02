@@ -113,12 +113,6 @@
         #clearBtn:active {
             transform: translateY(1px);
         }
-
-        #historyOutput {
-            white-space: pre-wrap;
-            font-size: 0.85rem;
-            color: #cbd5e1;
-        }
     </style>
 </head>
 
@@ -138,8 +132,6 @@
                 <button id="copyBtn">Copy List</button>
                 <button id="clearBtn">Clear</button>
             </div>
-
-            <pre id="historyOutput"></pre>
         </div>
 
     </main>
@@ -216,11 +208,6 @@
                 acc: accuracy,
                 time: Date.now()
             });
-
-            // Update visible list
-            historyOutput.textContent = historyPoints
-                .map(p => `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}, ±${Math.round(p.acc)}m, ${new Date(p.time).toLocaleTimeString()}`)
-                .join("\n");
 
             setStatus(
                 `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)} (±${Math.round(accuracy)} m)`
