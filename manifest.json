@@ -1,7 +1,7 @@
 {
     "name": "Location Tracker",
     "short_name": "Location",
-    "start_url": "location.html",
+    "start_url": "./location.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#1976d2",
