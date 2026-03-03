@@ -151,11 +151,46 @@
 
         let historyPoints = [];
 
-        const statusEl = document.getElementById("status");
-        const locateBtn = document.getElementById("locateBtn");
-        const historyOutput = document.getElementById("historyOutput");
-        const copyBtn = document.getElementById("copyBtn");
-        const clearBtn = document.getElementById("clearBtn");
+        // Screen Wake Lock
+        let wakeLock = null;
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        setStatus('Screen Wake Lock released.');
+                    });
+                    setStatus('Screen Wake Lock acquired.');
+                } catch (err) {
+                    setStatus('Wake Lock error: ' + err.message);
+                }
+            } else if ('wakeLock' in window) {
+                // For older spec (rare)
+                try {
+                    wakeLock = await window.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        setStatus('Screen Wake Lock released.');
+                    });
+                    setStatus('Screen Wake Lock acquired.');
+                } catch (err) {
+                    setStatus('Wake Lock error: ' + err.message);
+                }
+            } else {
+                setStatus('Screen Wake Lock API not supported.');
+            }
+        }
+
+        // Release wake lock on page hide
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'hidden') {
+                try {
+                    await wakeLock.release();
+                    wakeLock = null;
+                } catch (e) {}
+            } else if (wakeLock === null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
 
         function exportSVG() {
             if (historyPoints.length < 2) return "";
@@ -307,6 +342,8 @@
 
             setStatus("Requesting location…");
             locateBtn.disabled = true;
+
+            requestWakeLock();
 
             navigator.geolocation.watchPosition(handlePosition, handleError, {
                 enableHighAccuracy: true,
