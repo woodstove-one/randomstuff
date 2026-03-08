@@ -146,7 +146,9 @@
                 <label>Bottom-right Lat: <input id="brLat" type="number" step="any"></label>
                 <label>Bottom-right Lng: <input id="brLng" type="number" step="any"></label>
                 <button id="updateBoundsBtn">Update Bounds</button>
+                <button id="visualAdjustBtn">Visual Adjust</button>
             </div>
+            <button id="placeBtn" style="display:none; margin-top: 0.75rem;">Place SVG</button>
             <input type="file" id="uploadSvg" accept=".svg" style="display:none">
         </div>
     </main>
@@ -163,6 +165,8 @@
 
         let historyPoints = [];
         let svgOverlays = [];
+        let placementOverlay = null;
+        let mapMoveHandler = () => { if (placementOverlay) placementOverlay.setBounds(map.getBounds()); };
 
         const statusEl = document.getElementById("status");
         const locateBtn = document.getElementById("locateBtn");
@@ -175,6 +179,11 @@
         const tlLng = document.getElementById("tlLng");
         const brLat = document.getElementById("brLat");
         const brLng = document.getElementById("brLng");
+        const adjustBtn = document.getElementById("adjustBtn");
+        const updateBoundsBtn = document.getElementById("updateBoundsBtn");
+        const overlaySelect = document.getElementById("overlaySelect");
+        const placeBtn = document.getElementById("placeBtn");
+        const visualAdjustBtn = document.getElementById("visualAdjustBtn");
         function updateInputsForSelected() {
             const idx = parseInt(overlaySelect.value);
             if (isNaN(idx) || idx < 0 || idx >= svgOverlays.length) return;
@@ -358,19 +367,12 @@
                 alert("Map not initialized. Please locate first.");
                 return;
             }
-            const tlLatVal = parseFloat(tlLat.value);
-            const tlLngVal = parseFloat(tlLng.value);
-            const brLatVal = parseFloat(brLat.value);
-            const brLngVal = parseFloat(brLng.value);
-            if (isNaN(tlLatVal) || isNaN(tlLngVal) || isNaN(brLatVal) || isNaN(brLngVal)) {
-                alert("Please enter valid bounds.");
-                return;
-            }
-            const bounds = [[tlLatVal, tlLngVal], [brLatVal, brLngVal]];
             const url = URL.createObjectURL(file);
-            const overlay = L.imageOverlay(url, bounds).addTo(map);
+            const overlay = L.imageOverlay(url, map.getBounds()).addTo(map);
             svgOverlays.push(overlay);
-            boundsInputs.style.display = "none";
+            placementOverlay = overlay;
+            map.on('move', mapMoveHandler);
+            placeBtn.style.display = "inline";
         });
 
         // Adjust bounds button
@@ -410,6 +412,28 @@
             const bounds = [[tlLatVal, tlLngVal], [brLatVal, brLngVal]];
             svgOverlays[idx].setBounds(bounds);
             boundsInputs.style.display = "none";
+        });
+
+        // Visual adjust button
+        visualAdjustBtn.addEventListener("click", () => {
+            const idx = parseInt(overlaySelect.value);
+            if (isNaN(idx) || idx < 0 || idx >= svgOverlays.length) {
+                alert("Invalid overlay selected.");
+                return;
+            }
+            placementOverlay = svgOverlays[idx];
+            map.on('move', mapMoveHandler);
+            placeBtn.style.display = "inline";
+            boundsInputs.style.display = "none";
+        });
+
+        // Place button
+        placeBtn.addEventListener("click", () => {
+            if (placementOverlay) {
+                placementOverlay = null;
+                map.off('move', mapMoveHandler);
+                placeBtn.style.display = "none";
+            }
         });
 
         locateBtn.addEventListener("click", startTracking);
