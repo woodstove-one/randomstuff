@@ -279,11 +279,11 @@
             if (!map) {
                 map = L.map("map", {
                     zoomSnap: 0.01,
-                    zoomDelta: 0.01
+                    zoomDelta: 0.005
                 }).setView([lat, lng], 16);
 
                 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    maxZoom: 19,
+                    maxZoom: 24,
                     attribution: "&copy; OpenStreetMap contributors"
                 }).addTo(map);
 
