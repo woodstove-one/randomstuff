@@ -426,15 +426,6 @@
         // Place button
         placeBtn.addEventListener("click", () => {
             if (placementOverlay) {
-                // Scale y-axis by 1.3
-                const bounds = map.getBounds();
-                const centerLat = (bounds.getNorth() + bounds.getSouth()) / 2;
-                const deltaLat = bounds.getNorth() - bounds.getSouth();
-                const newDeltaLat = deltaLat * 1.3;
-                const newNorth = centerLat + newDeltaLat / 2;
-                const newSouth = centerLat - newDeltaLat / 2;
-                const newBounds = [[newSouth, bounds.getWest()], [newNorth, bounds.getEast()]];
-                placementOverlay.setBounds(newBounds);
                 placementOverlay = null;
                 map.off('move', mapMoveHandler);
                 placeBtn.style.display = "none";
