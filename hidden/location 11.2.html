@@ -187,12 +187,6 @@
         let historyPoints = [];
         let svgOverlays = [];
         let placementOverlay = null;
-        let currentUploadedFile = null;
-        let mapInitialized = false;
-
-        // localStorage keys
-        const STORAGE_KEY_SVG = 'storedSvgData';
-        const STORAGE_KEY_BOUNDS = 'storedSvgBounds';
         let mapMoveHandler = () => {
             if (placementOverlay) {
                 const bounds = map.getBounds();
@@ -281,49 +275,6 @@
             statusEl.textContent = message;
         }
 
-        // Function to save SVG to localStorage
-        function saveSvgToStorage(file, bounds) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const svgData = e.target.result;
-                localStorage.setItem(STORAGE_KEY_SVG, svgData);
-                localStorage.setItem(STORAGE_KEY_BOUNDS, JSON.stringify({
-                    north: bounds.getNorth(),
-                    south: bounds.getSouth(),
-                    east: bounds.getEast(),
-                    west: bounds.getWest()
-                }));
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Function to restore SVG from localStorage
-        function restoreSvgFromStorage() {
-            const svgData = localStorage.getItem(STORAGE_KEY_SVG);
-            const boundsData = localStorage.getItem(STORAGE_KEY_BOUNDS);
-
-            if (!svgData || !boundsData) return false;
-
-            const bounds = JSON.parse(boundsData);
-            const leafletBounds = [[bounds.south, bounds.west], [bounds.north, bounds.east]];
-            const overlay = L.imageOverlay(svgData, leafletBounds).addTo(map);
-            svgOverlays.push(overlay);
-            placementOverlay = overlay;
-            map.on('move', mapMoveHandler);
-            placeBtn.style.display = "inline";
-
-            return true;
-        }
-
-        // Check on page load if we have a stored SVG
-        function checkStoredSvg() {
-            if (localStorage.getItem(STORAGE_KEY_SVG)) {
-                if (confirm("Restore previously saved SVG?")) {
-                    restoreSvgFromStorage();
-                }
-            }
-        }
-
         function initMap(lat, lng) {
             if (!map) {
                 map = L.map("map", {
@@ -338,12 +289,6 @@
 
                 // Create the trail line AFTER the map exists
                 pathLine = L.polyline([], { color: "#38bdf8", weight: 4 }).addTo(map);
-
-                // Check for stored SVG on first initialization
-                if (!mapInitialized) {
-                    mapInitialized = true;
-                    checkStoredSvg();
-                }
             }
 
             if (!marker) {
@@ -446,7 +391,6 @@
 
         uploadSvg.addEventListener("change", (event) => {
             const file = event.target.files[0];
-            currentUploadedFile = file; // Store the file
             if (!file) return;
             if (!map) {
                 alert("Map not initialized. Please locate first.");
@@ -488,7 +432,6 @@
                 return;
             }
             placementOverlay = svgOverlays[idx];
-            currentUploadedFile = null; // Clear file reference when adjusting
             map.on('move', mapMoveHandler);
             placeBtn.style.display = "inline";
             adjustUI.style.display = "none";
@@ -497,13 +440,7 @@
         // Place button
         placeBtn.addEventListener("click", () => {
             if (placementOverlay) {
-                // Save to localStorage only if this is a freshly uploaded SVG
-                if (currentUploadedFile) {
-                    saveSvgToStorage(currentUploadedFile, placementOverlay.getBounds());
-                }
-
                 placementOverlay = null;
-                currentUploadedFile = null;
                 map.off('move', mapMoveHandler);
                 placeBtn.style.display = "none";
                 adjustUI.style.display = "none";
