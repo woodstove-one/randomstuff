@@ -96,6 +96,32 @@
             border: 1px solid #1e293b;
         }
 
+        #adjustUI {
+            display: none;
+            margin-top: 0.75rem;
+        }
+
+        #overlaySelect {
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            width: 100%;
+            background: #334155;
+            color: #f1f5f9;
+            border: 1px solid #475569;
+            border-radius: 0.5rem;
+        }
+
+        #startAdjustBtn {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #2563eb;
+            color: #f9fafb;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
         #historyButtons {
             display: flex;
             gap: 0.5rem;
@@ -139,6 +165,10 @@
                 <button id="adjustBtn">Adjust Bounds</button>
                 <button id="clearBtn">Clear</button>
             </div>
+            <div id="adjustUI">
+                <select id="overlaySelect"></select>
+                <button id="startAdjustBtn">Adjust Selected</button>
+            </div>
             <button id="placeBtn" style="display:none; margin-top: 0.75rem;">Place SVG</button>
             <input type="file" id="uploadSvg" accept=".svg" style="display:none">
         </div>
@@ -166,6 +196,9 @@
         const uploadBtn = document.getElementById("uploadBtn");
         const uploadSvg = document.getElementById("uploadSvg");
         const adjustBtn = document.getElementById("adjustBtn");
+        const adjustUI = document.getElementById("adjustUI");
+        const overlaySelect = document.getElementById("overlaySelect");
+        const startAdjustBtn = document.getElementById("startAdjustBtn");
         const placeBtn = document.getElementById("placeBtn");
 
         function exportSVG() {
@@ -361,17 +394,28 @@
                 alert("No overlays to adjust.");
                 return;
             }
-            // Add click listeners to overlays
-            svgOverlays.forEach((overlay, idx) => {
-                overlay.on('click', () => {
-                    placementOverlay = overlay;
-                    map.on('move', mapMoveHandler);
-                    placeBtn.style.display = "inline";
-                    // Remove listeners from all
-                    svgOverlays.forEach(ov => ov.off('click'));
-                });
+            // Populate select
+            overlaySelect.innerHTML = '';
+            svgOverlays.forEach((ov, i) => {
+                const option = document.createElement("option");
+                option.value = i;
+                option.text = `Overlay ${i + 1}`;
+                overlaySelect.appendChild(option);
             });
-            alert("Tap on an overlay to adjust it visually.");
+            adjustUI.style.display = "block";
+        });
+
+        // Start adjust button
+        startAdjustBtn.addEventListener("click", () => {
+            const idx = parseInt(overlaySelect.value);
+            if (isNaN(idx) || idx < 0 || idx >= svgOverlays.length) {
+                alert("Invalid overlay selected.");
+                return;
+            }
+            placementOverlay = svgOverlays[idx];
+            map.on('move', mapMoveHandler);
+            placeBtn.style.display = "inline";
+            adjustUI.style.display = "none";
         });
 
         // Place button
@@ -380,6 +424,7 @@
                 placementOverlay = null;
                 map.off('move', mapMoveHandler);
                 placeBtn.style.display = "none";
+                adjustUI.style.display = "none";
             }
         });
 
