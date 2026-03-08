@@ -278,8 +278,8 @@
         function initMap(lat, lng) {
             if (!map) {
                 map = L.map("map", {
-                    zoomSnap: 0.25,
-                    zoomDelta: 0.25
+                    zoomSnap: 0.01,
+                    zoomDelta: 0.01
                 }).setView([lat, lng], 16);
 
                 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
