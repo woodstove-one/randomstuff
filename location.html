@@ -200,6 +200,8 @@
         const overlaySelect = document.getElementById("overlaySelect");
         const startAdjustBtn = document.getElementById("startAdjustBtn");
         const placeBtn = document.getElementById("placeBtn");
+        // ensure dropdown accessible on mobile
+        overlaySelect.addEventListener('touchstart', () => overlaySelect.size = svgOverlays.length);
 
         function exportSVG() {
             if (historyPoints.length < 2) return "";
@@ -388,7 +390,7 @@
             placeBtn.style.display = "inline";
         });
 
-        // Adjust bounds button
+        // Adjust bounds button: show dropdown then let user confirm
         adjustBtn.addEventListener("click", () => {
             if (svgOverlays.length === 0) {
                 alert("No overlays to adjust.");
@@ -403,6 +405,9 @@
                 overlaySelect.appendChild(option);
             });
             adjustUI.style.display = "block";
+            // on mobile automatically open native picker
+            overlaySelect.focus();
+            overlaySelect.click();
         });
 
         // Start adjust button
