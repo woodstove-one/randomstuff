@@ -321,14 +321,22 @@
 
         // Clear button
         clearBtn.addEventListener("click", () => {
-            historyPoints = [];
-            historyOutput.textContent = "";
-            if (pathLine) pathLine.setLatLngs([]);
+            const confirmation = prompt("Type 'yes' to confirm clearing everything:");
+            if (confirmation === "yes") {
+                historyPoints = [];
+                if (pathLine) pathLine.setLatLngs([]);
+                svgOverlays.forEach(overlay => map.removeLayer(overlay));
+                svgOverlays = [];
+                if (placementOverlay) {
+                    placementOverlay = null;
+                    map.off('move', mapMoveHandler);
+                    placeBtn.style.display = "none";
+                }
+            }
         });
 
         // Upload button
         uploadBtn.addEventListener("click", () => {
-            boundsInputs.style.display = "block";
             uploadSvg.click();
         });
 
