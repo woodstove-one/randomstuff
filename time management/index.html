@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Management App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Time Management</h1>
+    </header>
+    <main>
+        <section id="task-form">
+            <h2>Add Task</h2>
+            <input type="text" id="task-name" placeholder="Task Name" required>
+            <select id="task-category">
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Study">Study</option>
+                <option value="Other">Other</option>
+            </select>
+            <button id="start-timer">Start Timer</button>
+            <button id="stop-timer" disabled>Stop Timer</button>
+        </section>
+        <section id="current-task">
+            <h2>Current Task</h2>
+            <p id="current-task-display">No task running</p>
+            <p id="elapsed-time">00:00:00</p>
+        </section>
+        <section id="tasks-list">
+            <h2>Completed Tasks</h2>
+            <ul id="tasks-ul"></ul>
+        </section>
+        <section id="statistics">
+            <h2>Statistics</h2>
+            <canvas id="stats-chart"></canvas>
+            <div id="stats-summary"></div>
+        </section>
+    </main>
+    <script src="app.js"></script>
+</body>
+
+</html>
