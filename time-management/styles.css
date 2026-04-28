@@ -64,11 +64,200 @@ button:disabled {
 
 #stats-chart {
     max-width: 100%;
-    height: 300px;
+    height: 320px;
 }
+
 
 @media (max-width: 600px) {
     main {
         padding: 0.5rem;
+    }
+}
+
+:root {
+    --bg: #f4f4f4;
+    --card: #ffffff;
+    --text: #333333;
+    --primary: #007bff;
+    --primary-dark: #005bb5;
+    --danger: #e74c3c;
+}
+
+body[data-theme="dark"] {
+    --bg: #111822;
+    --card: #1e293b;
+    --text: #e2e8f0;
+    --primary: #38bdf8;
+    --primary-dark: #0f172a;
+    --danger: #f87171;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+.page-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.page-nav button {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 0.6rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.page-nav button.active {
+    background: white;
+    color: var(--primary);
+    border-color: white;
+}
+
+main {
+    padding: 1rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.section-block {
+    background-color: var(--card);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.section-block h2 {
+    margin-top: 0;
+}
+
+input, select, button {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    background: var(--bg);
+    color: var(--text);
+}
+
+button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background-color: var(--primary-dark);
+}
+
+button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+button.danger {
+    background-color: var(--danger);
+}
+
+button.small-button {
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+label.control-label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+label.control-label select {
+    margin-top: 0.5rem;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.task-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 0.8rem;
+    margin-bottom: 0.75rem;
+    border-radius: 14px;
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.task-row strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.task-row span {
+    color: #64748b;
+}
+
+#tasks-ul,
+#templates-ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#tasks-ul li.empty {
+    color: #64748b;
+    padding: 0.75rem 0.5rem;
+}
+
+#navigation {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#navigation a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.stats-details ul {
+    padding-left: 1.2rem;
+    margin: 0.75rem 0 0 0;
+}
+
+@media (max-width: 640px) {
+    .page-nav {
+        flex-direction: column;
+    }
+
+    .task-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .task-row button.small-button {
+        margin-left: 0;
+        margin-top: 0.5rem;
     }
 }

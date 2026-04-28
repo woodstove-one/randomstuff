@@ -13,33 +13,80 @@
 <body>
     <header>
         <h1>Time Management</h1>
+        <nav class="page-nav">
+            <button type="button" data-page="timer-page" class="active">Timer</button>
+            <button type="button" data-page="tasks-page">Tasks</button>
+            <button type="button" data-page="stats-page">Stats</button>
+            <button type="button" data-page="settings-page">Settings</button>
+        </nav>
     </header>
     <main>
-        <section id="task-form">
-            <h2>Add Task</h2>
-            <input type="text" id="task-name" placeholder="Task Name" required>
-            <select id="task-category">
-                <option value="Work">Work</option>
-                <option value="Personal">Personal</option>
-                <option value="Study">Study</option>
-                <option value="Other">Other</option>
-            </select>
-            <button id="start-timer">Start Timer</button>
-            <button id="stop-timer" disabled>Stop Timer</button>
+        <section id="timer-page" class="page active">
+            <div class="section-block">
+                <h2>Timer</h2>
+                <input type="text" id="task-name" placeholder="Task Name">
+                <select id="task-category">
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Study">Study</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select id="template-select">
+                    <option value="">Start from saved template</option>
+                </select>
+                <button id="start-timer">Start Timer</button>
+                <button id="stop-timer" disabled>Stop Timer</button>
+            </div>
+            <div class="section-block" id="current-task">
+                <h2>Current Task</h2>
+                <p id="current-task-display">No task running</p>
+                <p id="elapsed-time">00:00:00</p>
+            </div>
         </section>
-        <section id="current-task">
-            <h2>Current Task</h2>
-            <p id="current-task-display">No task running</p>
-            <p id="elapsed-time">00:00:00</p>
+        <section id="tasks-page" class="page">
+            <div class="section-block">
+                <h2>Create Task</h2>
+                <input type="text" id="manual-task-name" placeholder="Task Name">
+                <select id="manual-task-category">
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Study">Study</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="number" id="manual-task-duration" min="0" placeholder="Duration in minutes (optional)">
+                <button id="add-task">Add Completed Task</button>
+                <button id="save-template">Save as Template</button>
+            </div>
+            <div class="section-block">
+                <h2>Saved Templates</h2>
+                <ul id="templates-ul"></ul>
+            </div>
+            <div class="section-block">
+                <h2>Completed Tasks</h2>
+                <ul id="tasks-ul"></ul>
+                <button id="clear-tasks" class="danger">Clear All Tasks</button>
+            </div>
         </section>
-        <section id="tasks-list">
-            <h2>Completed Tasks</h2>
-            <ul id="tasks-ul"></ul>
+        <section id="stats-page" class="page">
+            <div class="section-block">
+                <h2>Statistics</h2>
+                <canvas id="stats-chart"></canvas>
+                <div id="stats-summary"></div>
+                <div id="stats-extra"></div>
+            </div>
         </section>
-        <section id="statistics">
-            <h2>Statistics</h2>
-            <canvas id="stats-chart"></canvas>
-            <div id="stats-summary"></div>
+        <section id="settings-page" class="page">
+            <div class="section-block">
+                <h2>Settings</h2>
+                <label class="control-label">
+                    Theme
+                    <select id="theme-select">
+                        <option value="default">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </label>
+                <button id="reset-app" class="danger">Reset App Data</button>
+            </div>
         </section>
         <section id="navigation">
             <a href="../index.html">← Back to Home</a>
