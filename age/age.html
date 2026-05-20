@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Live Age Calculator</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 20px;
+        }
+
+        label {
+            font-size: 1.1rem;
+        }
+
+        input {
+            font-size: 1rem;
+            padding: 4px;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            max-width: 420px;
+        }
+
+        .results div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Live Age Calculator</h2>
+
+    <label for="bday">Enter your birthday:</label>
+    <input type="date" id="bday">
+
+    <div class="results" id="results"></div>
+
+    <script>
+        const bdayInput = document.getElementById("bday");
+        const results = document.getElementById("results");
+
+        function fmt(n) {
+            return n.toLocaleString(undefined, { maximumFractionDigits: 6 });
+        }
+
+        function update() {
+            const val = bdayInput.value;
+            if (!val) {
+                results.innerHTML = "<div>Please enter your birthday.</div>";
+                return;
+            }
+
+            const birth = new Date(val);
+            const now = new Date();
+            const diffMs = now - birth;
+
+            if (diffMs < 0) {
+                results.innerHTML = "<div>Birthday is in the future.</div>";
+                return;
+            }
+
+            const seconds = diffMs / 1000;
+            const minutes = seconds / 60;
+            const hours = minutes / 60;
+            const days = hours / 24;
+            const weeks = days / 7;
+            const months = days / 30.4375;   // average month length
+            const years = days / 365.2425;  // solar year
+
+            results.innerHTML = `
+        <div><strong>Years:</strong> ${fmt(years)}</div>
+        <div><strong>Months:</strong> ${fmt(months)}</div>
+        <div><strong>Weeks:</strong> ${fmt(weeks)}</div>
+        <div><strong>Days:</strong> ${fmt(days)}</div>
+        <div><strong>Hours:</strong> ${fmt(hours)}</div>
+        <div><strong>Minutes:</strong> ${fmt(minutes)}</div>
+        <div><strong>Seconds:</strong> ${fmt(seconds)}</div>
+        <div><strong>Milliseconds:</strong> ${fmt(diffMs)}</div>
+      `;
+        }
+
+        // Update fast enough to feel "live"
+        setInterval(update, 50);
+        bdayInput.addEventListener("input", update);
+    </script>
+</body>
+
+</html>
