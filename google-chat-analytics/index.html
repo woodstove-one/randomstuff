@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chat Analytics — Pacific + Responsive + Worker</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat Analytics</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
   <style>
     :root {
@@ -17,9 +17,7 @@
       --border: rgba(11, 102, 255, 0.06);
       --radius: 12px;
       --shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
-      --glass: rgba(255, 255, 255, 0.7);
-      --fade-height: 420px;
-      --card-padding: 14px;
+      --glass: rgba(255, 255, 255, 0.7)
     }
 
     :root.dark {
@@ -31,61 +29,31 @@
       --accent2: #4a7cff;
       --border: rgba(122, 162, 255, 0.06);
       --glass: rgba(15, 23, 36, 0.6);
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.6)
     }
 
-    /* Page background: fixed single fade pseudo-element to avoid repeating gradient */
     html,
     body {
-      height: 100%;
       margin: 0;
       padding: 0;
-      background-color: var(--bg);
+      background: linear-gradient(180deg, var(--bg), var(--bg) 400px, #dfe6f5 100%);
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
       color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: var(--fade-height);
-      pointer-events: none;
-      z-index: -1;
-      background: linear-gradient(180deg, var(--bg) 0%, #e6eef8 60%, rgba(230, 238, 248, 0) 100%);
-      background-repeat: no-repeat;
-    }
-
-    :root.dark body::before {
-      background: linear-gradient(180deg, #071025 0%, #071a2a 60%, rgba(7, 26, 42, 0) 100%);
+      min-height: 100%;
+      background-attachment: scroll;
+      -webkit-font-smoothing: antialiased
     }
 
     .app {
       max-width: 1200px;
       margin: 20px auto;
-      padding: 16px;
-      position: relative;
-      z-index: 1;
-      box-sizing: border-box;
+      padding: 16px
     }
 
-    /* Topbar */
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .title h1 {
+    h1 {
       margin: 0;
-      font-size: 20px
+      font-size: 20px;
+      color: var(--text)
     }
 
     .small {
@@ -93,12 +61,11 @@
       color: var(--muted)
     }
 
-    /* Toolbar */
     .toolbar {
       display: flex;
-      gap: 8px;
-      align-items: center;
       flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px
     }
 
     .input {
@@ -108,7 +75,7 @@
       background: transparent;
       color: var(--text);
       min-height: 40px;
-      box-sizing: border-box;
+      box-sizing: border-box
     }
 
     .btn {
@@ -118,13 +85,17 @@
       cursor: pointer;
       background: var(--accent);
       color: #fff;
-      font-size: 14px;
+      transition: background .2s ease, opacity .2s ease
+    }
+
+    .btn:hover {
+      opacity: .85
     }
 
     .btn.ghost {
       background: transparent;
       color: var(--accent);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border)
     }
 
     .btn.small {
@@ -132,7 +103,6 @@
       font-size: 13px
     }
 
-    /* File button */
     .file-wrap {
       position: relative;
       display: inline-block
@@ -148,7 +118,7 @@
       color: #fff;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(11, 102, 255, 0.12);
+      box-shadow: 0 8px 20px rgba(11, 102, 255, 0.12)
     }
 
     input[type=file] {
@@ -161,35 +131,19 @@
       cursor: pointer
     }
 
-    /* Cards and grid */
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
-      padding: var(--card-padding);
+      padding: 14px;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      box-sizing: border-box;
+      box-sizing: border-box
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 16px;
-      margin-top: 16px;
-    }
-
-    @media (max-width:900px) {
-      .grid {
-        grid-template-columns: 1fr
-      }
-    }
-
-    /* Stats */
     .stat-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 12px
+      gap: 12px
     }
 
     .stat {
@@ -201,7 +155,26 @@
       box-sizing: border-box
     }
 
-    /* Accordion */
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+      margin-top: 16px
+    }
+
+    @media(max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
     .accordion {
       margin-top: 16px
     }
@@ -212,6 +185,13 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       cursor: pointer;
+      position: relative;
+      z-index: 10;
+      transition: background .2s ease
+    }
+
+    .accordion-header:hover {
+      background: rgba(11, 102, 255, 0.04)
     }
 
     .accordion-body {
@@ -228,7 +208,6 @@
       padding: 12px
     }
 
-    /* Suggest list */
     .suggest-list {
       position: absolute;
       left: 0;
@@ -260,7 +239,24 @@
       background: rgba(11, 102, 255, 0.04)
     }
 
-    /* Tables */
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(11, 102, 255, 0.04);
+      border: 1px solid var(--border);
+      display: none
+    }
+
+    .chart-wrap {
+      height: 260px
+    }
+
+    .message-snippet {
+      color: var(--text);
+      font-size: 14px
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -277,13 +273,16 @@
 
     th {
       color: var(--muted);
-      cursor: pointer
+      cursor: pointer;
+      user-select: none
     }
 
     th.sortable::after {
       content: "";
       margin-left: 4px;
       border: 4px solid transparent;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
       display: inline-block
     }
 
@@ -295,62 +294,12 @@
       border-top-color: var(--muted)
     }
 
-    /* Charts */
-    .chart-wrap {
-      height: 260px
-    }
-
-    @media (max-width:900px) {
-      .chart-wrap {
-        height: 200px
-      }
-    }
-
-    /* Participant card fallback for narrow screens */
-    .person-card {
-      display: none;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 8px;
-      background: var(--panel)
-    }
-
-    .person-card .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center
-    }
-
-    .person-card .name {
-      font-weight: 700
-    }
-
-    /* Show cards and hide table on narrow screens */
-    @media (max-width:600px) {
-      #personTable {
-        display: none
-      }
-
-      .person-card {
-        display: block
-      }
-
-      .btn {
-        min-height: 44px;
-        min-width: 44px
-      }
-    }
-
-    /* Footer */
     .footer {
       margin-top: 20px;
       color: var(--muted);
       font-size: 13px
     }
 
-    /* Utility */
     .link {
       color: var(--accent);
       cursor: pointer
@@ -358,15 +307,6 @@
 
     .link:hover {
       text-decoration: underline
-    }
-
-    .status {
-      margin-top: 12px;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(11, 102, 255, 0.04);
-      border: 1px solid var(--border);
-      display: none
     }
   </style>
 </head>
@@ -376,17 +316,14 @@
     <header class="topbar">
       <div class="title">
         <h1>Chat Analytics</h1>
-        <div class="small">Local analysis — timestamps shown in Pacific Time</div>
+        <div class="small">Local analysis</div>
       </div>
-
-      <div class="toolbar" style="align-items:center">
+      <div class="toolbar">
         <div class="file-wrap">
           <div id="fileBtn" class="file-button">Choose file</div>
-          <input id="fileInput" type="file" accept=".json,.gchatenc,.txt,.log,*/*">
+          <input id="fileInput" type="file" accept=".json,.gchatenc">
         </div>
-
         <button id="pasteBtn" class="btn small">Paste JSON</button>
-
         <select id="timePreset" class="input">
           <option value="all">All time</option>
           <option value="7">Last 7 days</option>
@@ -394,10 +331,8 @@
           <option value="90">Last 90 days</option>
           <option value="custom">Custom range</option>
         </select>
-
         <input id="startDate" type="date" class="input" style="display:none">
         <input id="endDate" type="date" class="input" style="display:none">
-
         <button id="applyTime" class="btn small">Apply</button>
         <button id="themeToggle" class="btn ghost small">Theme</button>
       </div>
@@ -408,14 +343,13 @@
     <div class="grid">
       <main>
         <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="section-title">
             <div>
               <strong>Overview</strong>
               <div class="small">Summary</div>
             </div>
             <div id="filterBanner" class="small"></div>
           </div>
-
           <div id="overviewStats" class="stat-row"></div>
 
           <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
@@ -424,7 +358,6 @@
               <input id="personSelect" class="input" placeholder="Type name or text">
               <div id="suggestList" class="suggest-list"></div>
             </div>
-
             <div style="min-width:160px">
               <label class="small">Min messages</label>
               <input id="minMessages" class="input" type="number" min="1" value="1">
@@ -439,13 +372,18 @@
         <div class="accordion" id="accordionRoot">
 
           <div class="accordion-item">
-            <div class="accordion-header">Activity <div class="small">Messages per day</div>
+            <div class="accordion-header">
+              Activity
+              <div class="small">Messages per day</div>
             </div>
             <div class="accordion-body">
               <div class="card">
-                <div class="chart-wrap"><canvas id="timelineChart"></canvas></div>
-                <div class="chart-wrap" style="margin-top:16px"><canvas id="perPersonActivityChart"></canvas></div>
-
+                <div class="chart-wrap">
+                  <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="chart-wrap" style="margin-top:16px">
+                  <canvas id="perPersonActivityChart"></canvas>
+                </div>
                 <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
                   <div class="card" style="flex:1;min-width:160px">
                     <div class="small">Peak hour</div>
@@ -465,7 +403,9 @@
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header">Participants <div class="small">Message stats</div>
+            <div class="accordion-header">
+              Participants
+              <div class="small">Message stats</div>
             </div>
             <div class="accordion-body">
               <div class="card">
@@ -483,16 +423,17 @@
                       <tbody></tbody>
                     </table>
                   </div>
-
                   <div style="width:340px;max-width:100%">
                     <div class="small">Top words</div>
                     <div id="topWords" class="small" style="margin-bottom:12px"></div>
-
                     <div class="small">Messages by participant</div>
-                    <div class="chart-wrap" style="height:220px"><canvas id="byPersonChart"></canvas></div>
-
+                    <div class="chart-wrap" style="height:220px">
+                      <canvas id="byPersonChart"></canvas>
+                    </div>
                     <div class="small" style="margin-top:12px">Characters by participant</div>
-                    <div class="chart-wrap" style="height:220px"><canvas id="charByPersonChart"></canvas></div>
+                    <div class="chart-wrap" style="height:220px">
+                      <canvas id="charByPersonChart"></canvas>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -500,12 +441,16 @@
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header">Threads <div class="small">Conversation groups</div>
+            <div class="accordion-header">
+              Threads
+              <div class="small">Conversation groups</div>
             </div>
             <div class="accordion-body">
               <div class="card">
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <label class="small"><input id="showSingles" type="checkbox"> Include single-message threads</label>
+                  <label class="small">
+                    <input id="showSingles" type="checkbox"> Include single-message threads
+                  </label>
                   <label class="small">Minimum messages</label>
                   <input id="minThreadCount" class="input" type="number" min="1" value="2" style="width:80px">
                   <button id="applyThread" class="btn ghost small">Apply</button>
@@ -528,7 +473,9 @@
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header">Reactions <div class="small">Emoji usage</div>
+            <div class="accordion-header">
+              Reactions
+              <div class="small">Emoji usage</div>
             </div>
             <div class="accordion-body">
               <div class="card">
@@ -537,9 +484,10 @@
                     <div class="small">Top reaction emojis</div>
                     <div id="topReactions" class="small"></div>
                     <div class="small" style="margin-top:12px">Reaction timeline</div>
-                    <div class="chart-wrap"><canvas id="reactionTimeline"></canvas></div>
+                    <div class="chart-wrap">
+                      <canvas id="reactionTimeline"></canvas>
+                    </div>
                   </div>
-
                   <div style="width:320px;max-width:100%">
                     <div class="small">Reaction summary</div>
                     <div id="reactionSummary" class="small"></div>
@@ -547,7 +495,6 @@
                     <div id="reactionTypes" class="small"></div>
                   </div>
                 </div>
-
                 <div style="margin-top:12px">
                   <div class="small">Reactor → Recipient matrix</div>
                   <div id="matrixWrap" class="small"></div>
@@ -557,7 +504,9 @@
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header">Pairs <div class="small">Who reacts to whom</div>
+            <div class="accordion-header">
+              Pairs
+              <div class="small">Who reacts to whom</div>
             </div>
             <div class="accordion-body">
               <div class="card">
@@ -576,7 +525,9 @@
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header">Top messages <div class="small">Most reacted</div>
+            <div class="accordion-header">
+              Top messages
+              <div class="small">Most reacted</div>
             </div>
             <div class="accordion-body">
               <div class="card">
@@ -609,141 +560,148 @@
       </aside>
     </div>
 
-    <div class="footer">Local processing — times shown in Pacific Time (America/Los_Angeles)</div>
-  </div>
+    <div class="footer">Local processing</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script>
-    /* Chunk 1/4 end: paste Chunk 2/4 next */
-    /* Chunk 2/4 — Helpers, Timezone, Normalization, Worker scaffold, Analytics engine */
-
-    /* ---------- Theme ---------- */
-    function applyTheme(mode) {
-      if (mode === "dark") document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
-    }
-    (function initTheme() {
-      const saved = localStorage.getItem("theme");
-      if (saved) applyTheme(saved);
-      else applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
-        if (!localStorage.getItem("theme")) applyTheme(e.matches ? "dark" : "light");
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+      /* ---------- Theme ---------- */
+      function applyTheme(mode) {
+        if (mode === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+      }
+      (function initTheme() {
+        const saved = localStorage.getItem("theme");
+        if (saved) applyTheme(saved);
+        else applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+          if (!localStorage.getItem("theme")) {
+            applyTheme(e.matches ? "dark" : "light");
+          }
+        });
+      })();
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const dark = document.documentElement.classList.contains("dark");
+        const newMode = dark ? "light" : "dark";
+        applyTheme(newMode);
+        localStorage.setItem("theme", newMode);
       });
-    })();
-    document.getElementById("themeToggle").addEventListener("click", () => {
-      const dark = document.documentElement.classList.contains("dark");
-      const newMode = dark ? "light" : "dark";
-      applyTheme(newMode);
-      localStorage.setItem("theme", newMode);
-    });
 
-    /* ---------- Status ---------- */
-    function setStatus(msg, type = "info") {
-      const s = document.getElementById("status");
-      s.style.display = "block";
-      s.textContent = msg;
-      s.style.color = type === "error" ? "#d33" : "var(--muted)";
-    }
-    function clearStatus() {
-      const s = document.getElementById("status");
-      s.style.display = "none";
-      s.textContent = "";
-    }
-
-    /* ---------- Robust timezone and date helpers (replace existing helpers) ---------- */
-    const PACIFIC_TZ = 'America/Los_Angeles';
-    const pacificDayFormatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone: PACIFIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
-    });
-    const pacificDisplayFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: PACIFIC_TZ, year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-
-    function toDateSafe(isoOrEpoch) {
-      if (isoOrEpoch === null || isoOrEpoch === undefined) return null;
-      const s = String(isoOrEpoch).trim();
-      // numeric epoch (seconds or milliseconds)
-      if (/^-?\d+$/.test(s)) {
-        let n = Number(s);
-        // treat 10-digit numbers as seconds
-        if (s.length === 10) n = n * 1000;
-        const d = new Date(n);
-        return isNaN(d.getTime()) ? null : d;
+      /* ---------- Status ---------- */
+      function setStatus(msg, type = "info") {
+        const s = document.getElementById("status");
+        s.style.display = "block";
+        s.textContent = msg;
+        s.style.color = type === "error" ? "#d33" : "var(--muted)";
       }
-      // try parsing ISO or human strings
-      try {
-        // normalize narrow no-break spaces and weird unicode spaces
-        const cleaned = s.replace(/\u202F|\u00A0/g, ' ').replace(/\s+at\s+/i, ' ');
-        const d = new Date(cleaned);
-        return isNaN(d.getTime()) ? null : d;
-      } catch (e) {
-        return null;
+      function clearStatus() {
+        const s = document.getElementById("status");
+        s.style.display = "none";
+        s.textContent = "";
       }
-    }
 
-    function dayKeyPacificFromIsoSafe(iso) {
-      const d = toDateSafe(iso);
-      if (!d) return 'unknown';
-      try { return pacificDayFormatter.format(d); } catch (e) { return 'unknown'; }
-    }
+      /* ---------- Time window ---------- */
+      function buildTimeWindow() {
+        const preset = document.getElementById("timePreset").value;
+        const sVal = document.getElementById("startDate").value;
+        const eVal = document.getElementById("endDate").value;
 
-    function formatPacificSafe(iso) {
-      const d = toDateSafe(iso);
-      if (!d) return '—';
-      try { return pacificDisplayFormatter.format(d); } catch (e) { return '—'; }
-    }
+        if (preset !== "custom") {
+          if (preset === "all") return { start: null, end: null };
+          const days = Number(preset);
+          const end = new Date();
+          const start = new Date(Date.now() - days * 86400000);
+          return { start, end };
+        }
 
-    /* ---------- Small helpers ---------- */
-    function escapeHtml(s) {
-      return (s + "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
-    }
-    function normalizeEmoji(e) {
-      if (!e) return e;
-      return e.replace(/[\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]/gu, "");
-    }
-    function isNarrow() { return window.innerWidth <= 600; }
-
-    /* ---------- Data holders ---------- */
-    let rawData = null;
-    let normalized = null;
-    let analytics = null;
-    let baseAnalytics = null;
-    let charts = {};
-    let analyticsWorker = null;
-
-    /* ---------- Inline Worker scaffold (create on demand) ---------- */
-    function createAnalyticsWorker() {
-      if (analyticsWorker) return analyticsWorker;
-      const workerCode = `
-    function toDateSafeWorker(isoOrEpoch){
-      if(isoOrEpoch === null || isoOrEpoch === undefined) return null;
-      const s = String(isoOrEpoch).trim();
-      if(/^-?\\d+$/.test(s)){
-        let n = Number(s);
-        if(s.length === 10) n = n * 1000;
-        const d = new Date(n);
-        return isNaN(d.getTime()) ? null : d;
+        const start = sVal ? new Date(sVal + "T00:00:00") : null;
+        const end = eVal ? new Date(eVal + "T23:59:59.999") : null;
+        return { start, end };
       }
-      try{
-        const cleaned = s.replace(/\\u202F|\\u00A0/g, ' ').replace(/\\s+at\\s+/i, ' ');
-        const d = new Date(cleaned);
-        return isNaN(d.getTime()) ? null : d;
-      }catch(e){
-        return null;
-      }
-    }
 
-    self.addEventListener('message', async (ev) => {
-      const { cmd, messages, opts } = ev.data;
-      if(cmd === 'compute'){
-        const total = messages.length;
+      /* ---------- Helpers ---------- */
+      function escapeHtml(s) {
+        return (s + "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+      }
+      function parseDate(s) {
+        if (!s) return null;
+        s = s.replace(/\u202F/g, " ").replace(/\u00A0/g, " ").trim();
+        s = s.replace(/^[A-Za-z]+,\s*/, "");
+        s = s.replace(/\s+at\s+/i, " ");
+        if (!/Z$/.test(s) && !/UTC$/i.test(s)) s += " UTC";
+        const d = new Date(s);
+        return isNaN(d) ? null : d;
+      }
+      function normalizeEmoji(e) {
+        if (!e) return e;
+        return e.replace(/[\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]/gu, "");
+      }
+
+      /* ---------- Data ---------- */
+      let rawData = null;
+      let normalized = null;
+      let analytics = null;
+      let baseAnalytics = null;
+      let charts = {};
+
+      /* ---------- Load JSON ---------- */
+      function loadJson(text) {
+        try {
+          clearStatus();
+          setStatus("Parsing JSON...");
+          let parsed;
+          try { parsed = JSON.parse(text); } catch (e) {
+            setStatus("Invalid JSON: " + e.message, "error");
+            return;
+          }
+          rawData = parsed;
+          normalized = normalize(parsed);
+          if (!normalized.length) {
+            setStatus("No messages found", "error");
+            return;
+          }
+          computeAndRender();
+        } catch (e) {
+          console.error(e);
+          setStatus("Unexpected error: " + e.message, "error");
+        }
+      }
+
+      /* ---------- Normalize messages ---------- */
+      function normalize(raw) {
+        let arr = [];
+        if (Array.isArray(raw)) arr = raw;
+        else if (raw.messages) arr = raw.messages;
+        else {
+          for (const k in raw) {
+            if (Array.isArray(raw[k])) { arr = raw[k]; break; }
+          }
+        }
+
+        return arr.map((m, i) => {
+          const c = m.creator || {};
+          const name = c.name || c.displayName || c.email || "Unknown";
+          const email = c.email || "";
+          const text = m.text ? String(m.text) : "";
+          const ts = parseDate(m.created_date || m.createdDate || m.created || m.timestamp);
+          const upd = parseDate(m.updated_date || m.updatedDate || m.updated);
+          const topic = m.topic_id || m.thread_id || m.topic || null;
+          const id = m.message_id || m.id || ("m" + i);
+          const reactions = Array.isArray(m.reactions) ? m.reactions : [];
+          const prev = Array.isArray(m.previous_message_versions) ? m.previous_message_versions : [];
+          const files = m.attachments || m.files || [];
+
+          return { sender: name, email, text, ts, updated: upd, topic, id, reactions, prev, files };
+        });
+      }
+
+      /* ---------- Analytics Engine ---------- */
+      function computeAnalytics(messages, start, end) {
         const stats = {
           total: 0,
-          perDay: new Map(),
-          perHour: Array(24).fill(0),
           byPerson: new Map(),
           chars: new Map(),
+          perDay: new Map(),
+          perHour: Array(24).fill(0),
           words: new Map(),
           textEmojis: new Map(),
           reactionEmojis: new Map(),
@@ -754,924 +712,727 @@
           perPersonDaily: new Map()
         };
 
-        const wordRe = /[\\p{L}\\p{N}’']+/gu;
-        const emojiRe = /\\p{Emoji_Presentation}|\\p{Emoji}\\uFE0F/gu;
+        const wordRe = /[\p{L}\p{N}’']+/gu;
+        const emojiRe = /\p{Emoji_Presentation}|\p{Emoji}\uFE0F/gu;
 
-        function stopWordsSet(){
-          return new Set(["the","and","to","a","i","you","it","is","in","for","of","on","that","this","we","are","was","with","as","be","have","not","but","they","at","or","an","so","if","from","by","what","your","do","me","my","im","u","lol"]);
-        }
-        const stopWords = stopWordsSet();
+        const inRange = (d) => {
+          if (!d) return true;
+          if (start && d < start) return false;
+          if (end && d > end) return false;
+          return true;
+        };
 
-        for(let i=0;i<messages.length;i++){
-          const m = messages[i];
-          // skip if out of range (main thread can pre-filter by passing opts.start/end)
-          if(opts && opts.start && m.utcIso){
-            const t = toDateSafeWorker(m.utcIso);
-            if(t && new Date(opts.start) && t < new Date(opts.start)) continue;
-            if(t && opts.end && new Date(opts.end) && t > new Date(opts.end)) continue;
-          }
+        const sorted = messages.slice().sort((a, b) => {
+          if (a.ts && b.ts) return a.ts - b.ts;
+          if (a.ts) return -1;
+          if (b.ts) return 1;
+          return 0;
+        });
 
+        for (const m of sorted) {
+          if (m.ts && !inRange(m.ts)) continue;
           stats.total++;
-          const name = m.sender || "Unknown";
-          stats.byPerson.set(name, (stats.byPerson.get(name)||0) + 1);
-          const len = (m.text||"").length;
-          stats.chars.set(name, (stats.chars.get(name)||0) + len);
 
-          const day = m.dayPacific || 'unknown';
-          stats.perDay.set(day, (stats.perDay.get(day)||0) + 1);
+          const name = m.sender;
+          stats.byPerson.set(name, (stats.byPerson.get(name) || 0) + 1);
 
-          if(m.utcIso){
-            const d = toDateSafeWorker(m.utcIso);
-            if(d) stats.perHour[d.getUTCHours()] = (stats.perHour[d.getUTCHours()]||0) + 1;
-          }
+          const len = m.text.length;
+          stats.chars.set(name, (stats.chars.get(name) || 0) + len);
 
-          if(!stats.perPersonDaily.has(name)) stats.perPersonDaily.set(name, new Map());
+          const day = m.ts ? m.ts.toISOString().slice(0, 10) : "unknown";
+          stats.perDay.set(day, (stats.perDay.get(day) || 0) + 1);
+
+          if (m.ts) stats.perHour[m.ts.getHours()]++;
+
+          if (!stats.perPersonDaily.has(name)) stats.perPersonDaily.set(name, new Map());
           const ppd = stats.perPersonDaily.get(name);
-          ppd.set(day, (ppd.get(day)||0) + 1);
+          ppd.set(day, (ppd.get(day) || 0) + 1);
 
-          const words = (m.text||"").match(wordRe) || [];
-          for(const w of words){
+          const words = m.text.match(wordRe) || [];
+          for (const w of words) {
             const lw = w.toLowerCase();
-            if(!stopWords.has(lw)) stats.words.set(lw, (stats.words.get(lw)||0) + 1);
+            if (!stopWords.has(lw)) {
+              stats.words.set(lw, (stats.words.get(lw) || 0) + 1);
+            }
           }
 
-          const emojis = (m.text||"").match(emojiRe) || [];
-          for(const e of emojis){
-            const ne = e.replace(/[\\uFE0F\\u200D\\u{1F3FB}-\\u{1F3FF}]/gu,"");
-            stats.textEmojis.set(ne, (stats.textEmojis.get(ne)||0) + 1);
+          const emojis = m.text.match(emojiRe) || [];
+          for (const e of emojis) {
+            const ne = normalizeEmoji(e);
+            stats.textEmojis.set(ne, (stats.textEmojis.get(ne) || 0) + 1);
           }
 
           const tid = m.topic || "__none__";
-          if(!stats.threads.has(tid)) stats.threads.set(tid, {count:0, people:new Set(), first: null, last: null});
-          const tObj = stats.threads.get(tid);
-          tObj.count++;
-          tObj.people.add(name);
-          const d = toDateSafeWorker(m.utcIso);
-          if(d){
-            if(!tObj.first || d < tObj.first) tObj.first = d;
-            if(!tObj.last || d > tObj.last) tObj.last = d;
+          if (!stats.threads.has(tid)) {
+            stats.threads.set(tid, { count: 0, people: new Set(), first: m.ts, last: m.ts });
           }
+          const t = stats.threads.get(tid);
+          t.count++;
+          t.people.add(name);
+          if (m.ts && (!t.first || m.ts < t.first)) t.first = m.ts;
+          if (m.ts && (!t.last || m.ts > t.last)) t.last = m.ts;
 
-          if(!stats.msgReacts.has(m.id)) stats.msgReacts.set(m.id, {sender:name, text:m.text, ts:m.utcIso?toDateSafeWorker(m.utcIso):null, total:0, breakdown:new Map(), reactors:new Map()});
-
-          if(i % 200 === 0){
-            self.postMessage({type:'progress', pct: Math.round((i/total)*50)});
-            await new Promise(r => setTimeout(r,0));
+          if (!stats.msgReacts.has(m.id)) {
+            stats.msgReacts.set(m.id, { sender: name, text: m.text, ts: m.ts, total: 0, breakdown: new Map(), reactors: new Map() });
           }
         }
 
-        // Second pass: reactions
-        const msgs = messages;
-        for(let i=0;i<msgs.length;i++){
-          const m = msgs[i];
-          if(!m.reactions) continue;
-          if(opts && opts.start && m.utcIso){
-            const t = toDateSafeWorker(m.utcIso);
-            if(t && new Date(opts.start) && t < new Date(opts.start)) continue;
-            if(t && opts.end && new Date(opts.end) && t > new Date(opts.end)) continue;
-          }
+        for (const m of sorted) {
+          if (m.ts && !inRange(m.ts)) continue;
+          const rec = m.sender;
           const mid = m.id;
-          const mr = stats.msgReacts.get(mid) || {sender:m.sender, text:m.text, ts:m.utcIso?toDateSafeWorker(m.utcIso):null, total:0, breakdown:new Map(), reactors:new Map()};
-          for(const r of m.reactions || []){
+          const mr = stats.msgReacts.get(mid);
+
+          for (const r of m.reactions) {
             let rawEmoji = null;
-            if(r && typeof r === 'object'){
-              rawEmoji = r.emoji && (r.emoji.unicode || r.emoji.text || r.emoji.name) || r.emoji || null;
-            } else if(typeof r === 'string') rawEmoji = r;
-            const emo = (rawEmoji || "").replace(/[\\uFE0F\\u200D\\u{1F3FB}-\\u{1F3FF}]/gu,"");
-            const reactors = Array.isArray(r && r.reactor_emails) ? r.reactor_emails : (Array.isArray(r && r.reactors) ? r.reactors : []);
-            const unique = new Set(reactors.length ? reactors : [r && r.by || r && r.who || "unknown"]);
+            if (r.emoji) {
+              rawEmoji = r.emoji.unicode || r.emoji.text || r.emoji.name || r.emoji;
+            } else if (typeof r === "string") {
+              rawEmoji = r;
+            }
+            const emo = normalizeEmoji(rawEmoji || "");
+
+            const reactors = Array.isArray(r.reactor_emails) ? r.reactor_emails :
+              Array.isArray(r.reactors) ? r.reactors : [];
+            const unique = new Set(reactors);
             const count = unique.size || 1;
+
             mr.total += count;
-            mr.breakdown.set(emo, (mr.breakdown.get(emo)||0) + count);
-            stats.reactionEmojis.set(emo, (stats.reactionEmojis.get(emo)||0) + count);
-            const day = m.dayPacific || 'unknown';
-            stats.emojiTimeline.set(day, (stats.emojiTimeline.get(day)||0) + count);
-            for(const re of unique){
-              mr.reactors.set(re, (mr.reactors.get(re)||0) + 1);
-              if(!stats.reactMap.has(re)) stats.reactMap.set(re, new Map());
+            mr.breakdown.set(emo, (mr.breakdown.get(emo) || 0) + count);
+
+            stats.reactionEmojis.set(emo, (stats.reactionEmojis.get(emo) || 0) + count);
+
+            const day = m.ts ? m.ts.toISOString().slice(0, 10) : "unknown";
+            stats.emojiTimeline.set(day, (stats.emojiTimeline.get(day) || 0) + count);
+
+            for (const re of unique) {
+              mr.reactors.set(re, (mr.reactors.get(re) || 0) + 1);
+              if (!stats.reactMap.has(re)) stats.reactMap.set(re, new Map());
               const inner = stats.reactMap.get(re);
-              inner.set(m.sender, (inner.get(m.sender)||0) + 1);
+              inner.set(rec, (inner.get(rec) || 0) + 1);
             }
           }
-          stats.msgReacts.set(mid, mr);
-          if(i % 200 === 0){
-            self.postMessage({type:'progress', pct: 50 + Math.round((i/msgs.length)*45)});
-            await new Promise(r => setTimeout(r,0));
-          }
         }
 
-        // Summaries
-        const personSummary = Array.from(stats.byPerson.entries()).map(([name,count])=>{
+        const personSummary = [...stats.byPerson.entries()].map(([name, count]) => {
           const chars = stats.chars.get(name) || 0;
-          return {name, count, chars, avg: chars / Math.max(1,count)};
-        }).sort((a,b)=>b.count-a.count);
+          return { name, count, chars, avg: chars / count };
+        }).sort((a, b) => b.count - a.count);
 
-        const topWords = Array.from(stats.words.entries()).sort((a,b)=>b[1]-a[1]).slice(0,40);
-        const topReactions = Array.from(stats.reactionEmojis.entries()).sort((a,b)=>b[1]-a[1]).slice(0,40);
+        const topWords = [...stats.words.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
+        const topReactions = [...stats.reactionEmojis.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
 
         const pairs = [];
-        for(const [reactor,map] of stats.reactMap.entries()){
-          for(const [rec,count] of map.entries()){
-            pairs.push({reactor, recipient: rec, count});
+        for (const [reactor, map] of stats.reactMap.entries()) {
+          for (const [rec, count] of map.entries()) {
+            pairs.push({ reactor, recipient: rec, count });
           }
         }
-        pairs.sort((a,b)=>b.count-a.count);
+        pairs.sort((a, b) => b.count - a.count);
 
-        const reactors = Array.from(stats.reactMap.entries()).map(([r,map])=>({reactor:r, total: Array.from(map.values()).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);
+        const reactors = [...stats.reactMap.entries()].map(([r, map]) => {
+          return { reactor: r, total: [...map.values()].reduce((a, b) => a + b, 0) };
+        }).sort((a, b) => b.total - a.total);
 
-        const topMsgs = Array.from(stats.msgReacts.entries()).map(([id,m])=>({id, sender:m.sender, text:m.text, ts:m.ts, total:m.total})).sort((a,b)=>b.total-a.total).slice(0,200);
+        const topMsgs = [...stats.msgReacts.entries()].map(([id, m]) => ({
+          id, sender: m.sender, text: m.text, ts: m.ts, total: m.total
+        })).sort((a, b) => b.total - a.total).slice(0, 200);
 
-        const perDayVals = Array.from(stats.perDay.values());
-        const mean = perDayVals.reduce((a,b)=>a+b,0) / Math.max(1, perDayVals.length);
-        const burst = Math.sqrt(perDayVals.reduce((a,b)=>a + (b-mean)*(b-mean), 0) / Math.max(1, perDayVals.length));
+        const perDayVals = [...stats.perDay.values()];
+        const mean = perDayVals.reduce((a, b) => a + b, 0) / perDayVals.length || 0;
+        const burst = Math.sqrt(perDayVals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / perDayVals.length || 0);
 
-        const weekday = [0,0,0,0,0,0,0];
-        for(const [day,count] of stats.perDay.entries()){
-          if(day === 'unknown') continue;
-          const d = new Date(day + 'T00:00:00');
+        const weekday = [0, 0, 0, 0, 0, 0, 0];
+        for (const [day, count] of stats.perDay.entries()) {
+          if (day === "unknown") continue;
+          const d = new Date(day + "T00:00:00");
           weekday[d.getDay()] += count;
         }
 
-        const peakHour = stats.perHour.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v)[0]?.i ?? null;
+        const peakHour = stats.perHour.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v)[0]?.i ?? null;
 
-        self.postMessage({type:'done', result:{
-          stats: {
-            perDay: Array.from(stats.perDay.entries()),
-            perHour: stats.perHour,
-            byPerson: Array.from(stats.byPerson.entries()),
-            chars: Array.from(stats.chars.entries()),
-            perPersonDaily: Array.from(stats.perPersonDaily.entries()),
-            reactionEmojis: Array.from(stats.reactionEmojis.entries()),
-            emojiTimeline: Array.from(stats.emojiTimeline.entries()),
-            threads: Array.from(stats.threads.entries()),
-            reactMap: Array.from(stats.reactMap.entries()),
-            msgReacts: Array.from(stats.msgReacts.entries())
-          },
-          personSummary, topWords, topReactions, pairs, reactors, topMsgs, burst, peakHour, weekday
-        }});
-      }
-    });
-  `;
-      const blob = new Blob([workerCode], { type: 'application/javascript' });
-      analyticsWorker = new Worker(URL.createObjectURL(blob));
-      return analyticsWorker;
-    }
-
-    /* ---------- Load JSON (entry) ---------- */
-    function loadJson(text) {
-      try {
-        clearStatus();
-        setStatus("Parsing JSON...");
-        let parsed;
-        try { parsed = JSON.parse(text); } catch (e) {
-          setStatus("Invalid JSON: " + e.message, "error");
-          return;
-        }
-        rawData = parsed;
-        normalized = normalize(parsed);
-        if (!normalized || !normalized.length) {
-          setStatus("No messages found", "error");
-          return;
-        }
-        // choose worker for large datasets
-        if (new Blob([text]).size > 8 * 1024 * 1024) {
-          computeAnalyticsInWorker(normalized);
-        } else {
-          computeAndRender();
-        }
-      } catch (e) {
-        console.error(e);
-        setStatus("Unexpected error: " + e.message, "error");
-      }
-    }
-
-    /* ---------- Robust normalize function (replace existing normalize) ---------- */
-    function normalize(raw) {
-      let arr = [];
-      if (Array.isArray(raw)) arr = raw;
-      else if (raw.messages && Array.isArray(raw.messages)) arr = raw.messages;
-      else {
-        for (const k in raw) {
-          if (Array.isArray(raw[k])) { arr = raw[k]; break; }
-        }
-      }
-
-      return arr.map((m, i) => {
-        const c = m.creator || m.sender || m.from || {};
-        const name = c.name || c.displayName || c.email || m.name || "Unknown";
-        const email = c.email || m.email || "";
-        const text = m.text || m.message || m.content || "";
-        // canonical raw timestamp candidates (your format uses created_date)
-        const utcRaw = m.created_date || m.createdDate || m.created || m.timestamp || m.ts || m.time || null;
-        const tsDate = toDateSafe(utcRaw); // Date object or null
-        const utcIso = tsDate ? tsDate.toISOString() : null;
-        const dayPacific = tsDate ? dayKeyPacificFromIsoSafe(utcIso) : 'unknown';
-        const updRaw = m.updated_date || m.updatedDate || m.updated || null;
-        const updDate = toDateSafe(updRaw);
-        const topic = m.topic_id || m.thread_id || m.topic || m.thread || null;
-        const id = m.message_id || m.id || ("m" + i);
-        const reactions = Array.isArray(m.reactions) ? m.reactions : (m.reaction ? [m.reaction] : []);
-        const prev = Array.isArray(m.previous_message_versions) ? m.previous_message_versions : [];
-        const files = m.attachments || m.files || [];
         return {
-          sender: String(name),
-          email,
-          text: String(text || ""),
-          ts: tsDate,            // Date or null
-          utcIso,                // ISO string or null
-          dayPacific,            // 'YYYY-MM-DD' or 'unknown'
-          updated: updDate ? updDate.toISOString() : null,
-          topic,
-          id,
-          reactions,
-          prev,
-          files
+          stats,
+          personSummary,
+          topWords,
+          topReactions,
+          pairs,
+          reactors,
+          topMsgs,
+          burst,
+          peakHour,
+          weekday
         };
-      });
-    }
+      }
 
-    /* ---------- Compute Analytics (main-thread fallback) ---------- */
-    function computeAnalytics(messages, start, end) {
-      // simple wrapper that mirrors worker result shape for main-thread use
-      const opts = { start: start ? start.toISOString() : null, end: end ? end.toISOString() : null };
-      // reuse worker logic by running in worker synchronously via postMessage
-      return new Promise((resolve, reject) => {
-        const w = createAnalyticsWorker();
-        const onMsg = (ev) => {
-          const d = ev.data;
-          if (d.type === 'progress') setStatus('Computing analytics: ' + d.pct + '%');
-          if (d.type === 'done') {
-            w.removeEventListener('message', onMsg);
-            clearStatus();
-            resolve(d.result);
-          }
-        };
-        w.addEventListener('message', onMsg);
-        w.postMessage({ cmd: 'compute', messages, opts });
-      });
-    }
-
-    /* ---------- Compute in worker (used for large files) ---------- */
-    function computeAnalyticsInWorker(messages) {
-      setStatus("Starting worker compute...");
-      const w = createAnalyticsWorker();
-      const onMsg = (ev) => {
-        const d = ev.data;
-        if (d.type === 'progress') setStatus('Computing analytics: ' + d.pct + '%');
-        if (d.type === 'done') {
-          w.removeEventListener('message', onMsg);
-          analytics = d.result;
-          baseAnalytics = analytics;
-          renderAll();
-          clearStatus();
-        }
-      };
-      w.addEventListener('message', onMsg);
-      w.postMessage({ cmd: 'compute', messages, opts: {} });
-    }
-
-    /* ---------- Compute and render (small datasets) ---------- */
-    async function computeAndRender() {
-      try {
-        setStatus("Computing analytics...");
+      /* ---------- Compute + Render ---------- */
+      function computeAndRender() {
         const { start, end } = buildTimeWindow();
-        const result = await computeAnalytics(normalized, start, end);
-        analytics = result;
-        baseAnalytics = result;
+        analytics = computeAnalytics(normalized, start, end);
+        baseAnalytics = analytics;
         renderAll();
         clearStatus();
-      } catch (e) {
-        console.error(e);
-        setStatus("Analytics error: " + e.message, "error");
       }
-    }
-
-    /* ---------- Time window builder (uses UI controls) ---------- */
-    function buildTimeWindow() {
-      const preset = document.getElementById("timePreset").value;
-      const sVal = document.getElementById("startDate").value;
-      const eVal = document.getElementById("endDate").value;
-      if (preset !== "custom") {
-        if (preset === "all") return { start: null, end: null };
-        const days = Number(preset);
-        const end = new Date();
-        const start = new Date(Date.now() - days * 86400000);
-        return { start, end };
+      /* ---------- Render All ---------- */
+      function renderAll() {
+        renderOverview();
+        renderTimeline();
+        renderPerPersonActivity();
+        renderPeople();
+        renderThreads();
+        renderReactions();
+        renderPairs();
+        renderTopMessages();
       }
-      const start = sVal ? new Date(sVal + "T00:00:00") : null;
-      const end = eVal ? new Date(eVal + "T23:59:59.999") : null;
-      return { start, end };
-    }
 
-    /* ---------- Stopwords (shared) ---------- */
-    const stopWords = new Set([
-      "the", "and", "to", "a", "i", "you", "it", "is", "in", "for", "of", "on", "that", "this",
-      "we", "are", "was", "with", "as", "be", "have", "not", "but", "they", "at", "or", "an",
-      "so", "if", "from", "by", "what", "your", "do", "me", "my", "im", "u", "lol"
-    ]);
+      /* ---------- Overview ---------- */
+      function renderOverview() {
+        const o = document.getElementById("overviewStats");
+        o.innerHTML = "";
+        const a = analytics;
 
-    /* ---------- Initial UI state ---------- */
-    document.getElementById("overviewStats").innerHTML =
-      '<div class="stat"><div style="font-weight:700">Load data</div><div class="small">Choose or paste JSON</div></div>';
-    setStatus("Ready. Load JSON to begin.");
-    /* Chunk 3/4 — Rendering, Charts, Sorting, Card fallback */
+        const total = a.stats.total;
+        const people = a.personSummary.length;
+        const reacts = [...a.stats.reactionEmojis.values()].reduce((s, v) => s + v, 0);
+        const top = a.topReactions[0] ? `${escapeHtml(a.topReactions[0][0])} x${a.topReactions[0][1]}` : "—";
 
-    /* ---------- Utility to read analytics shape (worker result) ---------- */
-    function ensureAnalyticsShape(a) {
-      if (!a) return null;
-      // convert arrays back to maps where convenient
-      const stats = a.stats || {};
-      const shaped = {
-        stats: {
-          perDay: new Map((stats.perDay || []).map(([k, v]) => [k, v])),
-          perHour: stats.perHour || Array(24).fill(0),
-          byPerson: new Map((stats.byPerson || []).map(([k, v]) => [k, v])),
-          chars: new Map((stats.chars || []).map(([k, v]) => [k, v])),
-          perPersonDaily: new Map((stats.perPersonDaily || []).map(([k, map]) => [k, new Map(map)])),
-          reactionEmojis: new Map((stats.reactionEmojis || []).map(([k, v]) => [k, v])),
-          emojiTimeline: new Map((stats.emojiTimeline || []).map(([k, v]) => [k, v])),
-          threads: new Map((stats.threads || []).map(([k, v]) => [k, v])),
-          reactMap: new Map((stats.reactMap || []).map(([k, map]) => [k, new Map(map)])),
-          msgReacts: new Map((stats.msgReacts || []).map(([k, v]) => [k, v]))
-        },
-        personSummary: a.personSummary || [],
-        topWords: a.topWords || [],
-        topReactions: a.topReactions || [],
-        pairs: a.pairs || [],
-        reactors: a.reactors || [],
-        topMsgs: a.topMsgs || [],
-        burst: a.burst || 0,
-        peakHour: a.peakHour ?? null,
-        weekday: a.weekday || [0, 0, 0, 0, 0, 0, 0]
-      };
-      return shaped;
-    }
-
-    /* ---------- Render All ---------- */
-    function renderAll() {
-      if (!analytics) return;
-      const a = ensureAnalyticsShape(analytics);
-      renderOverview(a);
-      renderTimeline(a);
-      renderPerPersonActivity(a);
-      renderPeople(a);
-      renderThreads(a);
-      renderReactions(a);
-      renderPairs(a);
-      renderTopMessages(a);
-    }
-
-    /* ---------- Overview ---------- */
-    function renderOverview(a) {
-      const o = document.getElementById("overviewStats");
-      o.innerHTML = "";
-      const total = a.stats.perDay ? Array.from(a.stats.perDay.values()).reduce((s, v) => s + v, 0) : 0;
-      const people = a.personSummary.length;
-      const reacts = a.topReactions.reduce((s, e) => s + e[1], 0);
-      const top = a.topReactions[0] ? `${escapeHtml(a.topReactions[0][0])} x${a.topReactions[0][1]}` : "—";
-
-      function box(label, val) {
-        const d = document.createElement("div");
-        d.className = "stat";
-        d.innerHTML = `<div style="font-weight:700">${val}</div><div class="small">${label}</div>`;
-        return d;
+        function box(label, val) {
+          const d = document.createElement("div");
+          d.className = "stat";
+          d.innerHTML = `<div style="font-weight:700">${val}</div><div class="small">${label}</div>`;
+          return d;
+        }
+        o.appendChild(box("Total messages", total));
+        o.appendChild(box("Participants", people));
+        o.appendChild(box("Total reactions", reacts));
+        o.appendChild(box("Top reaction emoji", top));
       }
-      o.appendChild(box("Total messages", total));
-      o.appendChild(box("Participants", people));
-      o.appendChild(box("Total reactions", reacts));
-      o.appendChild(box("Top reaction emoji", top));
-    }
 
-    /* ---------- Timeline Chart ---------- */
-    function renderTimeline(a) {
-      const days = Array.from(a.stats.perDay.entries()).sort((x, y) => x[0].localeCompare(y[0]));
-      const labels = days.map(d => d[0]);
-      const vals = days.map(d => d[1]);
+      /* ---------- Timeline Chart ---------- */
+      function renderTimeline() {
+        const a = analytics;
+        const days = [...a.stats.perDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+        const labels = days.map(d => d[0]);
+        const vals = days.map(d => d[1]);
 
-      const ctx = document.getElementById("timelineChart").getContext("2d");
-      if (charts.timeline) charts.timeline.destroy();
-      charts.timeline = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets: [{ data: vals, borderColor: varAccent(), backgroundColor: "rgba(11,102,255,0.08)", fill: true, tension: .25 }] },
-        options: { plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
-      });
+        const ctx = document.getElementById("timelineChart").getContext("2d");
+        if (charts.timeline) charts.timeline.destroy();
+        charts.timeline = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              data: vals,
+              borderColor: varAccent(),
+              backgroundColor: "rgba(11,102,255,0.08)",
+              fill: true,
+              tension: .25
+            }]
+          },
+          options: { plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
 
-      document.getElementById("burstiness").textContent = (a.burst || 0).toFixed(2);
-      document.getElementById("peakHour").textContent = a.peakHour !== null ? a.peakHour + ":00" : "—";
-      document.getElementById("weekdayDist").textContent = (a.weekday || []).map((v, i) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i] + ":" + v).join(" • ");
-    }
+        document.getElementById("burstiness").textContent = analytics.burst.toFixed(2);
+        document.getElementById("peakHour").textContent = analytics.peakHour !== null ? analytics.peakHour + ":00" : "—";
+        document.getElementById("weekdayDist").textContent =
+          analytics.weekday.map((v, i) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i] + ":" + v).join(" • ");
+      }
 
-    /* ---------- Per-Person Activity Chart (stacked) ---------- */
-    function renderPerPersonActivity(a) {
-      const per = a.stats.perPersonDaily;
-      const totals = Array.from(per.entries()).map(([name, map]) => {
-        const sum = Array.from(map.values()).reduce((s, v) => s + v, 0);
-        return { name, sum, map };
-      }).sort((x, y) => y.sum - x.sum);
+      /* ---------- Per-Person Activity Chart ---------- */
+      function renderPerPersonActivity() {
+        const a = analytics;
+        const per = a.stats.perPersonDaily;
 
-      const limit = isNarrow() ? 5 : 8;
-      const top = totals.slice(0, limit);
+        const totals = [...per.entries()].map(([name, map]) => {
+          const sum = [...map.values()].reduce((a, b) => a + b, 0);
+          return { name, sum, map };
+        }).sort((a, b) => b.sum - a.sum).slice(0, 8);
 
-      const allDays = new Set();
-      for (const t of top) for (const d of t.map.keys()) allDays.add(d);
-      const labels = Array.from(allDays).sort();
+        const allDays = new Set();
+        for (const t of totals) {
+          for (const d of t.map.keys()) allDays.add(d);
+        }
+        const labels = [...allDays].sort();
 
-      const datasets = top.map((t, i) => ({
-        label: t.name,
-        data: labels.map(d => t.map.get(d) || 0),
-        borderColor: `hsl(${i * 40},80%,55%)`,
-        backgroundColor: `hsla(${i * 40},80%,55%,0.15)`,
-        fill: true,
-        tension: .25
-      }));
+        const datasets = totals.map((t, i) => ({
+          label: t.name,
+          data: labels.map(d => t.map.get(d) || 0),
+          borderColor: `hsl(${i * 40},80%,55%)`,
+          backgroundColor: `hsla(${i * 40},80%,55%,0.15)`,
+          fill: true,
+          tension: .25
+        }));
 
-      const ctx = document.getElementById("perPersonActivityChart").getContext("2d");
-      if (charts.perPersonActivity) charts.perPersonActivity.destroy();
-      charts.perPersonActivity = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: { plugins: { legend: { display: true } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
-      });
-    }
+        const ctx = document.getElementById("perPersonActivityChart").getContext("2d");
+        if (charts.perPersonActivity) charts.perPersonActivity.destroy();
+        charts.perPersonActivity = new Chart(ctx, {
+          type: "line",
+          data: { labels, datasets },
+          options: { plugins: { legend: { display: true } }, animation: { duration: 300 } }
+        });
+      }
 
-    /* ---------- Participants (table or cards) ---------- */
-    let currentSort = { key: "messages", dir: "desc" };
+      /* ---------- Participants ---------- */
+      let currentSort = { key: "messages", dir: "desc" };
 
-    function renderPeople(a) {
-      const tbody = document.querySelector("#personTable tbody");
-      // build list from personSummary
-      let list = a.personSummary.map(p => ({ name: p.name, count: p.count, chars: p.chars, avg: p.avg }));
+      function renderPeople() {
+        const a = analytics;
+        const tbody = document.querySelector("#personTable tbody");
+        tbody.innerHTML = "";
 
-      // apply sorting
-      if (currentSort.key === "messages") list.sort((x, y) => currentSort.dir === "desc" ? y.count - x.count : x.count - y.count);
-      else if (currentSort.key === "chars") list.sort((x, y) => currentSort.dir === "desc" ? y.chars - x.chars : x.chars - y.chars);
-      else if (currentSort.key === "avg") list.sort((x, y) => currentSort.dir === "desc" ? y.avg - x.avg : x.avg - y.avg);
+        let list = [...a.personSummary];
 
-      // table rows
-      tbody.innerHTML = "";
-      if (!isNarrow()) {
-        // ensure cards removed
-        document.querySelectorAll(".person-card").forEach(n => n.remove());
+        if (currentSort.key === "messages") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.count - a.count : a.count - b.count);
+        } else if (currentSort.key === "chars") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.chars - a.chars : a.chars - b.chars);
+        } else if (currentSort.key === "avg") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.avg - a.avg : a.avg - b.avg);
+        }
+
         for (const p of list) {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-        <td class="link" data-person="${escapeHtml(p.name)}">${escapeHtml(p.name)}</td>
-        <td>${p.count}</td>
-        <td>${p.chars}</td>
-        <td>${p.avg.toFixed(1)}</td>
-      `;
+      <td class="link" data-person="${escapeHtml(p.name)}">${escapeHtml(p.name)}</td>
+      <td>${p.count}</td>
+      <td>${p.chars}</td>
+      <td>${p.avg.toFixed(1)}</td>
+    `;
           tbody.appendChild(tr);
         }
+
         tbody.querySelectorAll("td.link").forEach(td => {
           td.addEventListener("click", () => applyPersonFilter(td.dataset.person));
         });
-      } else {
-        // render cards above the table
-        renderPersonCards(list);
+
+        renderByPersonCharts();
+        renderTopWords();
       }
 
-      renderByPersonCharts(a);
-      renderTopWords(a);
-    }
+      /* ---------- Top Words ---------- */
+      function renderTopWords() {
+        const a = analytics;
+        const wrap = document.getElementById("topWords");
+        wrap.innerHTML = a.topWords.map(w => `${escapeHtml(w[0])} (${w[1]})`).join(", ");
+      }
 
-    /* ---------- Render person cards for narrow screens ---------- */
-    function renderPersonCards(list) {
-      const tableParent = document.querySelector("#personTable").parentElement;
-      // remove existing cards
-      tableParent.querySelectorAll(".person-card").forEach(n => n.remove());
-      for (const p of list) {
-        const div = document.createElement("div");
-        div.className = "person-card";
-        div.innerHTML = `
-      <div class="row">
-        <div class="name">${escapeHtml(p.name)}</div>
-        <div class="small">Msgs ${p.count}</div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <div class="small">Chars ${p.chars}</div>
-        <div class="small">Avg ${p.avg.toFixed(1)}</div>
-      </div>
+      /* ---------- By-Person Charts ---------- */
+      function renderByPersonCharts() {
+        const a = analytics;
+
+        const top = a.personSummary.slice(0, 10);
+        const labels = top.map(t => t.name);
+        const msgVals = top.map(t => t.count);
+        const charVals = top.map(t => t.chars);
+
+        const ctx1 = document.getElementById("byPersonChart").getContext("2d");
+        if (charts.byPerson) charts.byPerson.destroy();
+        charts.byPerson = new Chart(ctx1, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: msgVals,
+              backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`)
+            }]
+          },
+          options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+
+        const ctx2 = document.getElementById("charByPersonChart").getContext("2d");
+        if (charts.charByPerson) charts.charByPerson.destroy();
+        charts.charByPerson = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: charVals,
+              backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`)
+            }]
+          },
+          options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+      }
+
+      /* ---------- Threads ---------- */
+      function renderThreads() {
+        const a = analytics;
+        const tbody = document.querySelector("#threadTable tbody");
+        tbody.innerHTML = "";
+
+        const show = document.getElementById("showSingles").checked;
+        const min = parseInt(document.getElementById("minThreadCount").value || "2", 10);
+
+        const list = [...a.stats.threads.entries()].map(([tid, t]) => ({ tid, t }))
+          .filter(x => show ? x.t.count >= min : (x.t.count > 1 && x.t.count >= min))
+          .sort((a, b) => b.t.count - a.t.count);
+
+        for (const x of list) {
+          const t = x.t;
+          const first = t.first ? t.first.toISOString().slice(0, 19).replace("T", " ") : "—";
+          const last = t.last ? t.last.toISOString().slice(0, 19).replace("T", " ") : "—";
+          const days = t.first && t.last ? Math.round((t.last - t.first) / 86400000) : 0;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+      <td>${escapeHtml(x.tid)}</td>
+      <td>${t.count}</td>
+      <td>${t.people.size}</td>
+      <td>${days}</td>
+      <td>${first}</td>
+      <td>${last}</td>
     `;
-        div.addEventListener("click", () => applyPersonFilter(p.name));
-        tableParent.insertBefore(div, tableParent.querySelector("#personTable"));
-      }
-    }
-
-    /* ---------- Top Words ---------- */
-    function renderTopWords(a) {
-      const wrap = document.getElementById("topWords");
-      wrap.innerHTML = a.topWords.map(w => `${escapeHtml(w[0])} (${w[1]})`).join(", ");
-    }
-
-    /* ---------- By-Person Charts (bars) ---------- */
-    function renderByPersonCharts(a) {
-      const top = a.personSummary.slice(0, isNarrow() ? 5 : 10);
-      const labels = top.map(t => t.name);
-      const msgVals = top.map(t => t.count);
-      const charVals = top.map(t => t.chars);
-
-      const ctx1 = document.getElementById("byPersonChart").getContext("2d");
-      if (charts.byPerson) charts.byPerson.destroy();
-      charts.byPerson = new Chart(ctx1, {
-        type: "bar",
-        data: { labels, datasets: [{ data: msgVals, backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`) }] },
-        options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
-      });
-
-      const ctx2 = document.getElementById("charByPersonChart").getContext("2d");
-      if (charts.charByPerson) charts.charByPerson.destroy();
-      charts.charByPerson = new Chart(ctx2, {
-        type: "bar",
-        data: { labels, datasets: [{ data: charVals, backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`) }] },
-        options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
-      });
-    }
-
-    /* ---------- Threads ---------- */
-    function renderThreads(a) {
-      const tbody = document.querySelector("#threadTable tbody");
-      tbody.innerHTML = "";
-      const show = document.getElementById("showSingles").checked;
-      const min = parseInt(document.getElementById("minThreadCount").value || "2", 10);
-
-      const list = Array.from(a.stats.threads.entries()).map(([tid, t]) => {
-        // t may be an object or array depending on worker serialization
-        const obj = (t && t.count !== undefined) ? t : (Array.isArray(t) ? t[1] : t);
-        const people = obj.people ? (obj.people.size ? obj.people.size : (Array.isArray(obj.people) ? obj.people.length : 0)) : 0;
-        const first = obj.first ? (new Date(obj.first)).toISOString().slice(0, 19).replace("T", " ") : "—";
-        const last = obj.last ? (new Date(obj.last)).toISOString().slice(0, 19).replace("T", " ") : "—";
-        const days = obj.first && obj.last ? Math.round((new Date(obj.last) - new Date(obj.first)) / 86400000) : 0;
-        return { tid, count: obj.count || 0, people, days, first, last };
-      }).filter(x => show ? x.count >= min : (x.count > 1 && x.count >= min)).sort((a, b) => b.count - a.count);
-
-      for (const t of list) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${escapeHtml(String(t.tid))}</td><td>${t.count}</td><td>${t.people}</td><td>${t.days}</td><td>${t.first}</td><td>${t.last}</td>`;
-        tbody.appendChild(tr);
-      }
-    }
-
-    /* ---------- Reactions ---------- */
-    function renderReactions(a) {
-      const top = a.topReactions.slice(0, 20);
-      document.getElementById("topReactions").innerHTML = top.map(e => `<div><strong>${escapeHtml(e[0])}</strong> x${e[1]}</div>`).join("");
-
-      const days = Array.from(a.stats.emojiTimeline.entries()).sort((x, y) => x[0].localeCompare(y[0]));
-      const labels = days.map(d => d[0]);
-      const vals = days.map(d => d[1]);
-
-      const ctx = document.getElementById("reactionTimeline").getContext("2d");
-      if (charts.reactTimeline) charts.reactTimeline.destroy();
-      charts.reactTimeline = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets: [{ data: vals, borderColor: "#ff7a59", backgroundColor: "rgba(255,122,89,0.08)", fill: true, tension: .25 }] },
-        options: { plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
-      });
-
-      const total = top.reduce((s, e) => s + e[1], 0);
-      document.getElementById("reactionSummary").textContent = "Total reactions: " + total;
-      document.getElementById("reactionTypes").textContent = top.map(e => `${escapeHtml(e[0])} x${e[1]}`).join(" • ");
-
-      renderMatrix(a);
-    }
-
-    /* ---------- Reaction Matrix ---------- */
-    function renderMatrix(a) {
-      const wrap = document.getElementById("matrixWrap");
-      wrap.innerHTML = "";
-      const pairs = a.pairs.slice(0, 200);
-      const reactors = Array.from(new Set(pairs.map(p => p.reactor))).slice(0, 20);
-      const recips = Array.from(new Set(pairs.map(p => p.recipient))).slice(0, 20);
-
-      if (!reactors.length || !recips.length) {
-        wrap.textContent = "Not enough data";
-        return;
-      }
-
-      const table = document.createElement("table");
-      const head = document.createElement("thead");
-      head.innerHTML = `<tr><th>Reactor \\ Recipient</th>${recips.map(r => `<th>${escapeHtml(r)}</th>`).join("")}</tr>`;
-      table.appendChild(head);
-
-      const tbody = document.createElement("tbody");
-      for (const reactor of reactors) {
-        const tr = document.createElement("tr");
-        let row = `<td><strong>${escapeHtml(reactor)}</strong></td>`;
-        for (const rec of recips) {
-          const inner = a.stats.reactMap.get(reactor) || new Map();
-          const count = inner.get ? (inner.get(rec) || 0) : 0;
-          const bg = count ? heatColor(count, 1) : "transparent";
-          const color = count ? "#fff" : "inherit";
-          row += `<td style="background:${bg};color:${color};text-align:center">${count}</td>`;
+          tbody.appendChild(tr);
         }
-        tr.innerHTML = row;
-        tbody.appendChild(tr);
       }
-      table.appendChild(tbody);
-      wrap.appendChild(table);
-    }
 
-    function heatColor(v, min) {
-      const ratio = Math.min(1, (v - min) / (v || 1));
-      const h = Math.round(220 - ratio * 120);
-      return `hsl(${h},85%,45%)`;
-    }
+      /* ---------- Reactions ---------- */
+      function renderReactions() {
+        const a = analytics;
 
-    /* ---------- Pairs ---------- */
-    function renderPairs(a) {
-      document.getElementById("pairList").innerHTML =
-        a.pairs.slice(0, 200).map(p => `<div style="padding:6px;border-bottom:1px solid var(--border)"><strong>${escapeHtml(p.reactor)}</strong> → <strong>${escapeHtml(p.recipient)}</strong> : ${p.count}</div>`).join("") || "None";
+        const top = a.topReactions.slice(0, 20);
+        document.getElementById("topReactions").innerHTML =
+          top.map(e => `<div><strong>${escapeHtml(e[0])}</strong> x${e[1]}</div>`).join("");
 
-      document.getElementById("topReactors").innerHTML =
-        a.reactors.slice(0, 40).map(x => `<div style="padding:6px;border-bottom:1px solid var(--border)">${escapeHtml(x.reactor)} — ${x.total}</div>`).join("") || "None";
-    }
+        const days = [...a.stats.emojiTimeline.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+        const labels = days.map(d => d[0]);
+        const vals = days.map(d => d[1]);
 
-    /* ---------- Top Messages ---------- */
-    function renderTopMessages(a) {
-      const wrap = document.getElementById("topMessages");
-      wrap.innerHTML = a.topMsgs.slice(0, 50).map(m => {
-        const ts = m.ts ? formatPacificSafe(m.ts) : "";
-        return `<div style="padding:8px;border-bottom:1px solid var(--border)"><strong>${m.total}</strong> — ${escapeHtml(m.sender)} — <span class="message-snippet">${escapeHtml((m.text || "").slice(0, 160))}</span><div class="small">${ts}</div></div>`;
-      }).join("") || "None";
-    }
+        const ctx = document.getElementById("reactionTimeline").getContext("2d");
+        if (charts.reactTimeline) charts.reactTimeline.destroy();
+        charts.reactTimeline = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              data: vals,
+              borderColor: "#ff7a59",
+              backgroundColor: "rgba(255,122,89,0.08)",
+              fill: true,
+              tension: .25
+            }]
+          },
+          options: { plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
 
-    /* ---------- Sorting handlers ---------- */
-    document.querySelectorAll("th.sortable").forEach(th => {
-      th.addEventListener("click", () => {
-        const key = th.dataset.sort;
-        if (currentSort.key === key) currentSort.dir = currentSort.dir === "desc" ? "asc" : "desc";
-        else { currentSort.key = key; currentSort.dir = "desc"; }
-        document.querySelectorAll("th.sortable").forEach(x => x.classList.remove("asc", "desc"));
-        th.classList.add(currentSort.dir);
-        if (analytics) renderPeople(ensureAnalyticsShape(analytics));
-      });
-    });
+        const total = top.reduce((s, e) => s + e[1], 0);
+        document.getElementById("reactionSummary").textContent = "Total reactions: " + total;
+        document.getElementById("reactionTypes").textContent =
+          top.map(e => `${escapeHtml(e[0])} x${e[1]}`).join(" • ");
 
-    /* ---------- Accent color helper ---------- */
-    function varAccent() {
-      return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0b66ff";
-    }
-
-    /* Chunk 3/4 end: paste Chunk 4/4 next */
-    /* Chunk 4/4 — Events, Filters, Exports, Suggestions, Final Glue */
-
-    /* ---------- Person Filter ---------- */
-    function applyPersonFilter(name) {
-      if (!normalized) return;
-      const { start, end } = buildTimeWindow();
-      // filter normalized by sender (case-insensitive)
-      const subset = normalized.filter(m => (m.sender || "").toLowerCase() === (name || "").toLowerCase());
-      if (!subset.length) {
-        setStatus("No messages for that participant", "error");
-        return;
+        renderMatrix();
       }
-      // use worker compute for subset to keep UI responsive
-      setStatus("Computing filtered analytics...");
-      const w = createAnalyticsWorker();
-      const onMsg = (ev) => {
-        const d = ev.data;
-        if (d.type === 'progress') setStatus('Computing analytics: ' + d.pct + '%');
-        if (d.type === 'done') {
-          w.removeEventListener('message', onMsg);
-          analytics = d.result;
-          renderAll();
-          document.getElementById("currentFilter").textContent = "Participant: " + name;
-          document.getElementById("filterBanner").textContent = "Filtered by participant";
-          clearStatus();
+
+      /* ---------- Reaction Matrix ---------- */
+      function renderMatrix() {
+        const a = analytics;
+        const wrap = document.getElementById("matrixWrap");
+        wrap.innerHTML = "";
+
+        const pairs = a.pairs.slice(0, 50);
+        const reactors = [...new Set(pairs.map(p => p.reactor))].slice(0, 20);
+        const recips = [...new Set(pairs.map(p => p.recipient))].slice(0, 20);
+
+        if (!reactors.length || !recips.length) {
+          wrap.textContent = "Not enough data";
+          return;
         }
-      };
-      w.addEventListener('message', onMsg);
-      w.postMessage({ cmd: 'compute', messages: subset, opts: { start: start ? start.toISOString() : null, end: end ? end.toISOString() : null } });
-    }
 
-    function clearFilterAll() {
-      if (!normalized) return;
-      const { start, end } = buildTimeWindow();
-      // recompute base analytics (use worker)
-      setStatus("Clearing filter and recomputing...");
-      const w = createAnalyticsWorker();
-      const onMsg = (ev) => {
-        const d = ev.data;
-        if (d.type === 'progress') setStatus('Computing analytics: ' + d.pct + '%');
-        if (d.type === 'done') {
-          w.removeEventListener('message', onMsg);
-          analytics = d.result;
-          baseAnalytics = analytics;
-          renderAll();
-          document.getElementById("personSelect").value = "";
-          document.getElementById("currentFilter").textContent = "None";
-          document.getElementById("filterBanner").textContent = "";
-          const box = document.getElementById("suggestList");
-          box.classList.remove("open");
+        const table = document.createElement("table");
+        const head = document.createElement("thead");
+        head.innerHTML = `<tr><th>Reactor \\ Recipient</th>${recips.map(r => `<th>${escapeHtml(r)}</th>`).join("")}</tr>`;
+        table.appendChild(head);
+
+        const tbody = document.createElement("tbody");
+        for (const reactor of reactors) {
+          const tr = document.createElement("tr");
+          let row = `<td><strong>${escapeHtml(reactor)}</strong></td>`;
+          for (const rec of recips) {
+            const inner = a.stats.reactMap.get(reactor);
+            const count = inner ? inner.get(rec) || 0 : 0;
+            const bg = count ? heatColor(count, 1) : "transparent";
+            const color = count ? "#fff" : "inherit";
+            row += `<td style="background:${bg};color:${color};text-align:center">${count}</td>`;
+          }
+          tr.innerHTML = row;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+      }
+
+      function heatColor(v, min) {
+        const ratio = Math.min(1, (v - min) / (v || 1));
+        const h = Math.round(220 - ratio * 120);
+        return `hsl(${h},85%,45%)`;
+      }
+
+      /* ---------- Pairs ---------- */
+      function renderPairs() {
+        const a = analytics;
+
+        document.getElementById("pairList").innerHTML =
+          a.pairs.slice(0, 200).map(p =>
+            `<div style="padding:6px;border-bottom:1px solid var(--border)">
+        <strong>${escapeHtml(p.reactor)}</strong> → <strong>${escapeHtml(p.recipient)}</strong> : ${p.count}
+      </div>`
+          ).join("") || "None";
+
+        document.getElementById("topReactors").innerHTML =
+          a.reactors.slice(0, 40).map(x =>
+            `<div style="padding:6px;border-bottom:1px solid var(--border)">
+        ${escapeHtml(x.reactor)} — ${x.total}
+      </div>`
+          ).join("") || "None";
+      }
+
+      /* ---------- Top Messages ---------- */
+      function renderTopMessages() {
+        const a = analytics;
+        const wrap = document.getElementById("topMessages");
+
+        wrap.innerHTML =
+          a.topMsgs.slice(0, 50).map(m => {
+            const ts = m.ts ? m.ts.toISOString().slice(0, 19).replace("T", " ") : "";
+            return `
+        <div style="padding:8px;border-bottom:1px solid var(--border)">
+          <strong>${m.total}</strong> — ${escapeHtml(m.sender)}
+          — <span class="message-snippet">${escapeHtml((m.text || "").slice(0, 160))}</span>
+          <div class="small">${ts}</div>
+        </div>
+      `;
+          }).join("") || "None";
+      }
+
+      /* ---------- Sorting ---------- */
+      document.querySelectorAll("th.sortable").forEach(th => {
+        th.addEventListener("click", () => {
+          const key = th.dataset.sort;
+          if (currentSort.key === key) {
+            currentSort.dir = currentSort.dir === "desc" ? "asc" : "desc";
+          } else {
+            currentSort.key = key;
+            currentSort.dir = "desc";
+          }
+          document.querySelectorAll("th.sortable").forEach(x => x.classList.remove("asc", "desc"));
+          th.classList.add(currentSort.dir);
+          renderPeople();
+        });
+      });
+
+      /* ---------- Accent Color ---------- */
+      function varAccent() {
+        return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0b66ff";
+      }
+      /* ---------- Person Filter ---------- */
+      function applyPersonFilter(name) {
+        if (!normalized) return;
+        const { start, end } = buildTimeWindow();
+        const subset = normalized.filter(m => m.sender.toLowerCase() === name.toLowerCase());
+        if (!subset.length) {
+          setStatus("No messages for that participant", "error");
+          return;
+        }
+        analytics = computeAnalytics(subset, start, end);
+        renderAll();
+        document.getElementById("currentFilter").textContent = "Participant: " + name;
+        document.getElementById("filterBanner").textContent = "Filtered by participant";
+      }
+
+      function clearFilterAll() {
+        if (!normalized) return;
+        const { start, end } = buildTimeWindow();
+        analytics = computeAnalytics(normalized, start, end);
+        baseAnalytics = analytics;
+        renderAll();
+        document.getElementById("personSelect").value = "";
+        document.getElementById("currentFilter").textContent = "None";
+        document.getElementById("filterBanner").textContent = "";
+        document.getElementById("suggestList").classList.remove("open");
+        document.getElementById("suggestList").style.display = "none";
+      }
+
+      /* ---------- Suggestions ---------- */
+      function buildSuggestions() {
+        if (!baseAnalytics) return [];
+        const list = [];
+        const samples = new Map();
+        for (const m of normalized) {
+          if (!samples.has(m.sender) && m.text) samples.set(m.sender, m.text.slice(0, 80));
+        }
+        for (const p of baseAnalytics.personSummary) {
+          list.push({ name: p.name, sample: samples.get(p.name) || "" });
+        }
+        return list;
+      }
+
+      function showSuggestions(query) {
+        const box = document.getElementById("suggestList");
+        const q = (query || "").toLowerCase().trim();
+        const all = buildSuggestions();
+        if (!all.length) {
           box.style.display = "none";
-          clearStatus();
+          box.classList.remove("open");
+          return;
         }
-      };
-      w.addEventListener('message', onMsg);
-      w.postMessage({ cmd: 'compute', messages: normalized, opts: { start: start ? start.toISOString() : null, end: end ? end.toISOString() : null } });
-    }
+        const filtered = all.filter(x => {
+          if (!q) return true;
+          return x.name.toLowerCase().includes(q) ||
+            (x.sample && x.sample.toLowerCase().includes(q));
+        }).slice(0, 40);
 
-    /* ---------- Suggestions ---------- */
-    function buildSuggestions() {
-      if (!baseAnalytics) return [];
-      const list = [];
-      const samples = new Map();
-      for (const m of normalized) {
-        if (!samples.has(m.sender) && m.text) samples.set(m.sender, m.text.slice(0, 80));
-      }
-      for (const p of baseAnalytics.personSummary) {
-        list.push({ name: p.name, sample: samples.get(p.name) || "" });
-      }
-      return list;
-    }
+        if (!filtered.length) {
+          box.style.display = "none";
+          box.classList.remove("open");
+          return;
+        }
 
-    function showSuggestions(query) {
-      const box = document.getElementById("suggestList");
-      const q = (query || "").toLowerCase().trim();
-      const all = buildSuggestions();
-      if (!all.length) {
-        box.style.display = "none";
-        box.classList.remove("open");
-        return;
-      }
-      const filtered = all.filter(x => {
-        if (!q) return true;
-        return x.name.toLowerCase().includes(q) || (x.sample && x.sample.toLowerCase().includes(q));
-      }).slice(0, 40);
-
-      if (!filtered.length) {
-        box.style.display = "none";
-        box.classList.remove("open");
-        return;
-      }
-
-      box.innerHTML = filtered.map(x => `
+        box.innerHTML = filtered.map(x => `
     <div class="suggest-item">
       <div><strong>${escapeHtml(x.name)}</strong></div>
       <div class="small">${escapeHtml(x.sample)}</div>
     </div>
   `).join("");
 
-      box.style.display = "block";
-      requestAnimationFrame(() => box.classList.add("open"));
+        box.style.display = "block";
+        requestAnimationFrame(() => box.classList.add("open"));
 
-      box.querySelectorAll(".suggest-item").forEach((el, i) => {
-        const item = filtered[i];
-        el.addEventListener("click", () => {
-          document.getElementById("personSelect").value = item.name;
-          box.classList.remove("open");
-          box.style.display = "none";
-          applyPersonFilter(item.name);
+        box.querySelectorAll(".suggest-item").forEach((el, i) => {
+          const item = filtered[i];
+          el.addEventListener("click", () => {
+            document.getElementById("personSelect").value = item.name;
+            box.classList.remove("open");
+            box.style.display = "none";
+            applyPersonFilter(item.name);
+          });
         });
+      }
+
+      /* ---------- CSV Export ---------- */
+      function exportCSV(rows, name) {
+        const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportPairsCSV() {
+        if (!baseAnalytics) return;
+        const rows = [["reactor", "recipient", "count"]];
+        for (const p of baseAnalytics.pairs) rows.push([p.reactor, p.recipient, p.count]);
+        exportCSV(rows, "pairs.csv");
+      }
+
+      function exportReactorsCSV() {
+        if (!baseAnalytics) return;
+        const rows = [["reactor", "total"]];
+        for (const r of baseAnalytics.reactors) rows.push([r.reactor, r.total]);
+        exportCSV(rows, "reactors.csv");
+      }
+
+      /* ---------- Accordion ---------- */
+      document.getElementById("accordionRoot").addEventListener("click", e => {
+        const header = e.target.closest(".accordion-header");
+        if (!header) return;
+        const body = header.nextElementSibling;
+        if (!body) return;
+
+        const open = body.classList.contains("open");
+        document.querySelectorAll(".accordion-body").forEach(b => b.classList.remove("open"));
+        if (!open) body.classList.add("open");
       });
-    }
 
-    /* ---------- CSV Export ---------- */
-    function exportCSV(rows, name) {
-      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
+      /* ---------- Events ---------- */
+      document.getElementById("fileBtn").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
 
-    function exportPairsCSV() {
-      if (!baseAnalytics) return;
-      const rows = [["reactor", "recipient", "count"]];
-      for (const p of baseAnalytics.pairs) rows.push([p.reactor, p.recipient, p.count]);
-      exportCSV(rows, "pairs.csv");
-    }
-
-    function exportReactorsCSV() {
-      if (!baseAnalytics) return;
-      const rows = [["reactor", "total"]];
-      for (const r of baseAnalytics.reactors) rows.push([r.reactor, r.total]);
-      exportCSV(rows, "reactors.csv");
-    }
-
-    /* ---------- Accordion behavior ---------- */
-    document.getElementById("accordionRoot").addEventListener("click", e => {
-      const header = e.target.closest(".accordion-header");
-      if (!header) return;
-      const body = header.nextElementSibling;
-      if (!body) return;
-      const open = body.classList.contains("open");
-      document.querySelectorAll(".accordion-body").forEach(b => b.classList.remove("open"));
-      if (!open) body.classList.add("open");
-    });
-
-    /* ---------- File and paste events ---------- */
-    document.getElementById("fileBtn").addEventListener("click", () => document.getElementById("fileInput").click());
-
-    document.getElementById("fileInput").addEventListener("change", async e => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      setStatus("Loading file...");
-      try {
+      document.getElementById("fileInput").addEventListener("change", async e => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        setStatus("Loading file...");
         const text = await f.text();
         loadJson(text);
-      } catch (err) {
-        setStatus("Failed to read file: " + err.message, "error");
-      }
-    });
-
-    document.getElementById("pasteBtn").addEventListener("click", () => {
-      const t = prompt("Paste JSON");
-      if (t) loadJson(t);
-    });
-
-    /* ---------- Time preset and apply ---------- */
-    document.getElementById("timePreset").addEventListener("change", e => {
-      const v = e.target.value;
-      const s = document.getElementById("startDate");
-      const ed = document.getElementById("endDate");
-      if (v === "custom") { s.style.display = "inline-block"; ed.style.display = "inline-block"; }
-      else { s.style.display = "none"; ed.style.display = "none"; }
-    });
-
-    document.getElementById("applyTime").addEventListener("click", () => {
-      if (!normalized) { setStatus("Load data first", "error"); return; }
-      // recompute analytics with time window
-      computeAndRender();
-    });
-
-    /* ---------- Person select input ---------- */
-    document.getElementById("personSelect").addEventListener("input", e => {
-      if (!baseAnalytics) return;
-      showSuggestions(e.target.value);
-    });
-
-    /* close suggestions when clicking outside */
-    document.addEventListener("click", e => {
-      if (!e.target.closest("#personSelect") && !e.target.closest("#suggestList")) {
-        const box = document.getElementById("suggestList");
-        box.classList.remove("open");
-        box.style.display = "none";
-      }
-    });
-
-    /* ---------- Quick apply and clear ---------- */
-    document.getElementById("applyQuick").addEventListener("click", () => {
-      const name = document.getElementById("personSelect").value.trim();
-      const min = parseInt(document.getElementById("minMessages").value || "1", 10);
-      if (name) applyPersonFilter(name);
-
-      const rows = document.querySelectorAll("#personTable tbody tr");
-      rows.forEach(r => {
-        const msgs = parseInt(r.children[1].textContent || "0", 10);
-        r.style.display = msgs >= min ? "" : "none";
       });
-    });
 
-    document.getElementById("clearFilter").addEventListener("click", clearFilterAll);
+      document.getElementById("pasteBtn").addEventListener("click", () => {
+        const t = prompt("Paste JSON");
+        if (t) loadJson(t);
+      });
 
-    /* ---------- Thread apply ---------- */
-    document.getElementById("applyThread").addEventListener("click", () => {
-      if (!analytics) return;
-      renderThreads(ensureAnalyticsShape(analytics));
-    });
-
-    /* ---------- Reset and exports ---------- */
-    document.getElementById("resetView").addEventListener("click", clearFilterAll);
-    document.getElementById("exportPairs").addEventListener("click", exportPairsCSV);
-    document.getElementById("exportReactors").addEventListener("click", exportReactorsCSV);
-
-    /* ---------- Window resize handling (responsive re-render) ---------- */
-    let resizeTimer = null;
-    window.addEventListener("resize", () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        if (normalized && analytics) {
-          renderAll();
-        }
-      }, 200);
-    });
-
-    /* ---------- Final initialization ---------- */
-    (function init() {
-      // small accessibility tweaks
-      document.querySelectorAll(".btn").forEach(b => b.setAttribute("role", "button"));
-
-      // open first accordion by default
-      const firstBody = document.querySelector(".accordion-body");
-      if (firstBody) firstBody.classList.add("open");
-
-      // keyboard shortcut: Ctrl/Cmd+O to open file dialog
-      window.addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
-          e.preventDefault();
-          document.getElementById("fileInput").click();
+      document.getElementById("timePreset").addEventListener("change", e => {
+        const v = e.target.value;
+        const s = document.getElementById("startDate");
+        const ed = document.getElementById("endDate");
+        if (v === "custom") {
+          s.style.display = "inline-block";
+          ed.style.display = "inline-block";
+        } else {
+          s.style.display = "none";
+          ed.style.display = "none";
         }
       });
-    })();
 
-    /* ---------- End of script: close tags in HTML file below */
-  </script>
+      document.getElementById("applyTime").addEventListener("click", () => {
+        if (!normalized) {
+          setStatus("Load data first", "error");
+          return;
+        }
+        computeAndRender();
+      });
+
+      document.getElementById("personSelect").addEventListener("input", e => {
+        if (!baseAnalytics) return;
+        showSuggestions(e.target.value);
+      });
+
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".person-suggest") &&
+          !e.target.closest("#personSelect")) {
+          const box = document.getElementById("suggestList");
+          box.classList.remove("open");
+          box.style.display = "none";
+        }
+      });
+
+      document.getElementById("applyQuick").addEventListener("click", () => {
+        const name = document.getElementById("personSelect").value.trim();
+        const min = parseInt(document.getElementById("minMessages").value || "1", 10);
+
+        if (name) applyPersonFilter(name);
+
+        const rows = document.querySelectorAll("#personTable tbody tr");
+        rows.forEach(r => {
+          const msgs = parseInt(r.children[1].textContent || "0", 10);
+          r.style.display = msgs >= min ? "" : "none";
+        });
+      });
+
+      document.getElementById("clearFilter").addEventListener("click", clearFilterAll);
+      document.getElementById("applyThread").addEventListener("click", () => renderThreads());
+      document.getElementById("resetView").addEventListener("click", clearFilterAll);
+      document.getElementById("exportPairs").addEventListener("click", exportPairsCSV);
+      document.getElementById("exportReactors").addEventListener("click", exportReactorsCSV);
+
+      /* ---------- Stopwords ---------- */
+      const stopWords = new Set([
+        "the", "and", "to", "a", "i", "you", "it", "is", "in", "for", "of", "on", "that", "this",
+        "we", "are", "was", "with", "as", "be", "have", "not", "but", "they", "at", "or", "an",
+        "so", "if", "from", "by", "what", "your", "do", "me", "my", "im", "u", "lol"
+      ]);
+
+      /* ---------- Initial ---------- */
+      document.getElementById("overviewStats").innerHTML =
+        '<div class="stat"><div style="font-weight:700">Load data</div><div class="small">Choose or paste JSON</div></div>';
+
+      setStatus("Ready. Load JSON to begin.");
+    </script>
 </body>
 
 </html>
