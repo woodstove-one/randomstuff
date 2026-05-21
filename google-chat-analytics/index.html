@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chat Analytics v13</title>
+  <title>Chat Analytics — Pacific + Responsive + Worker</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
   <style>
     :root {
@@ -20,7 +20,6 @@
       --glass: rgba(255, 255, 255, 0.7);
       --fade-height: 420px;
       --card-padding: 14px;
-      --gutter: 16px;
     }
 
     :root.dark {
@@ -47,13 +46,6 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       overflow-x: hidden;
-      box-sizing: border-box;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: inherit
     }
 
     body::before {
@@ -79,13 +71,14 @@
       padding: 16px;
       position: relative;
       z-index: 1;
+      box-sizing: border-box;
     }
 
     /* Topbar */
     .topbar {
       display: flex;
       justify-content: space-between;
-      gap: var(--gutter);
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
     }
@@ -106,16 +99,6 @@
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      width: 100%;
-    }
-
-    .toolbar .input {
-      min-width: 0;
-      flex: 1
-    }
-
-    .toolbar .file-wrap {
-      flex: 0 0 auto
     }
 
     .input {
@@ -125,6 +108,7 @@
       background: transparent;
       color: var(--text);
       min-height: 40px;
+      box-sizing: border-box;
     }
 
     .btn {
@@ -184,28 +168,19 @@
       padding: var(--card-padding);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      box-sizing: border-box;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: var(--gutter);
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
       margin-top: 16px;
-      align-items: start;
     }
 
-    /* Make aside collapse under main on small screens */
-    @media (max-width:1000px) {
+    @media (max-width:900px) {
       .grid {
         grid-template-columns: 1fr
-      }
-
-      aside {
-        order: 2
-      }
-
-      main {
-        order: 1
       }
     }
 
@@ -222,13 +197,13 @@
       border-radius: 10px;
       background: var(--glass);
       border: 1px solid var(--border);
-      min-width: 150px
+      min-width: 150px;
+      box-sizing: border-box
     }
 
     /* Accordion */
     .accordion {
-      margin-top: 16px;
-      width: 100vw
+      margin-top: 16px
     }
 
     .accordion-header {
@@ -239,29 +214,21 @@
       cursor: pointer;
     }
 
-    /* Accordion responsive height using viewport width */
     .accordion-body {
       overflow: hidden;
       max-height: 0;
       opacity: 0;
       transition: max-height .35s ease, opacity .25s ease, padding .25s ease;
-      padding: 0 12px;
-      box-sizing: border-box;
+      padding: 0 12px
     }
 
     .accordion-body.open {
-      /* height scales with viewport width to avoid extremely tall panels */
-      max-height: calc(60vw);
-      /* adjust 60vw to taste */
-      min-height: 60px;
-      /* ensure a usable minimum */
+      max-height: 2000px;
       opacity: 1;
-      padding: 12px;
-      /* safety cap relative to viewport height */
-      max-height: min(calc(60vw), 70vh);
+      padding: 12px
     }
 
-    /* Suggest list positioned relative to input container */
+    /* Suggest list */
     .suggest-list {
       position: absolute;
       left: 0;
@@ -328,38 +295,15 @@
       border-top-color: var(--muted)
     }
 
-    /* Chart container constraints using viewport width (vw) */
+    /* Charts */
     .chart-wrap {
-      width: 100%;
-      max-width: 100%;
-      /* heights expressed in vw so charts scale with viewport width */
-      height: calc(40vw);
-      /* default: 40vw */
-      max-height: 60vh;
-      /* safety cap in viewport height */
-      min-height: 120px;
-      /* minimum for very narrow screens */
-      overflow: hidden;
-      position: relative;
-      box-sizing: border-box;
+      height: 260px
     }
 
-    .chart-wrap.small {
-      height: calc(30vw);
-      max-height: 40vh;
-    }
-
-    .chart-wrap.tiny {
-      height: calc(22vw);
-      max-height: 30vh;
-    }
-
-    .chart-wrap canvas {
-      display: block !important;
-      width: 100% !important;
-      height: 100% !important;
-      max-width: 100% !important;
-      object-fit: contain;
+    @media (max-width:900px) {
+      .chart-wrap {
+        height: 200px
+      }
     }
 
     /* Participant card fallback for narrow screens */
@@ -393,38 +337,10 @@
         display: block
       }
 
-      .toolbar {
-        flex-direction: column;
-        align-items: stretch
-      }
-
-      .toolbar .input {
-        width: 100%
-      }
-
       .btn {
         min-height: 44px;
         min-width: 44px
       }
-
-      .file-button {
-        width: 100%;
-        justify-content: center
-      }
-
-      .card {
-        padding: 12px
-      }
-
-      .chart-wrap {
-        height: 180px
-      }
-    }
-
-    /* Make tables horizontally scrollable only if necessary but avoid page horizontal scroll */
-    .table-wrap {
-      overflow: auto;
-      max-width: 100%
     }
 
     /* Footer */
@@ -521,6 +437,7 @@
         </div>
 
         <div class="accordion" id="accordionRoot">
+
           <div class="accordion-item">
             <div class="accordion-header">Activity <div class="small">Messages per day</div>
             </div>
@@ -697,6 +614,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
+    /* Chunk 1/4 end: paste Chunk 2/4 next */
     /* Chunk 2/4 — Helpers, Timezone, Normalization, Worker scaffold, Analytics engine */
 
     /* ---------- Theme ---------- */
@@ -732,7 +650,7 @@
       s.textContent = "";
     }
 
-    /* ---------- Robust timezone and date helpers ---------- */
+    /* ---------- Robust timezone and date helpers (replace existing helpers) ---------- */
     const PACIFIC_TZ = 'America/Los_Angeles';
     const pacificDayFormatter = new Intl.DateTimeFormat('en-CA', {
       timeZone: PACIFIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
@@ -745,13 +663,17 @@
     function toDateSafe(isoOrEpoch) {
       if (isoOrEpoch === null || isoOrEpoch === undefined) return null;
       const s = String(isoOrEpoch).trim();
+      // numeric epoch (seconds or milliseconds)
       if (/^-?\d+$/.test(s)) {
         let n = Number(s);
+        // treat 10-digit numbers as seconds
         if (s.length === 10) n = n * 1000;
         const d = new Date(n);
         return isNaN(d.getTime()) ? null : d;
       }
+      // try parsing ISO or human strings
       try {
+        // normalize narrow no-break spaces and weird unicode spaces
         const cleaned = s.replace(/\u202F|\u00A0/g, ' ').replace(/\s+at\s+/i, ' ');
         const d = new Date(cleaned);
         return isNaN(d.getTime()) ? null : d;
@@ -842,6 +764,7 @@
 
         for(let i=0;i<messages.length;i++){
           const m = messages[i];
+          // skip if out of range (main thread can pre-filter by passing opts.start/end)
           if(opts && opts.start && m.utcIso){
             const t = toDateSafeWorker(m.utcIso);
             if(t && new Date(opts.start) && t < new Date(opts.start)) continue;
@@ -1022,7 +945,7 @@
       }
     }
 
-    /* ---------- Robust normalize function ---------- */
+    /* ---------- Robust normalize function (replace existing normalize) ---------- */
     function normalize(raw) {
       let arr = [];
       if (Array.isArray(raw)) arr = raw;
@@ -1038,8 +961,9 @@
         const name = c.name || c.displayName || c.email || m.name || "Unknown";
         const email = c.email || m.email || "";
         const text = m.text || m.message || m.content || "";
+        // canonical raw timestamp candidates (your format uses created_date)
         const utcRaw = m.created_date || m.createdDate || m.created || m.timestamp || m.ts || m.time || null;
-        const tsDate = toDateSafe(utcRaw);
+        const tsDate = toDateSafe(utcRaw); // Date object or null
         const utcIso = tsDate ? tsDate.toISOString() : null;
         const dayPacific = tsDate ? dayKeyPacificFromIsoSafe(utcIso) : 'unknown';
         const updRaw = m.updated_date || m.updatedDate || m.updated || null;
@@ -1053,9 +977,9 @@
           sender: String(name),
           email,
           text: String(text || ""),
-          ts: tsDate,
-          utcIso,
-          dayPacific,
+          ts: tsDate,            // Date or null
+          utcIso,                // ISO string or null
+          dayPacific,            // 'YYYY-MM-DD' or 'unknown'
           updated: updDate ? updDate.toISOString() : null,
           topic,
           id,
@@ -1068,7 +992,9 @@
 
     /* ---------- Compute Analytics (main-thread fallback) ---------- */
     function computeAnalytics(messages, start, end) {
+      // simple wrapper that mirrors worker result shape for main-thread use
       const opts = { start: start ? start.toISOString() : null, end: end ? end.toISOString() : null };
+      // reuse worker logic by running in worker synchronously via postMessage
       return new Promise((resolve, reject) => {
         const w = createAnalyticsWorker();
         const onMsg = (ev) => {
@@ -1153,6 +1079,7 @@
     /* ---------- Utility to read analytics shape (worker result) ---------- */
     function ensureAnalyticsShape(a) {
       if (!a) return null;
+      // convert arrays back to maps where convenient
       const stats = a.stats || {};
       const shaped = {
         stats: {
@@ -1192,8 +1119,6 @@
       renderReactions(a);
       renderPairs(a);
       renderTopMessages(a);
-      // ensure charts adapt to current breakpoint and container sizes
-      adjustChartSizes();
     }
 
     /* ---------- Overview ---------- */
@@ -1228,7 +1153,7 @@
       charts.timeline = new Chart(ctx, {
         type: "line",
         data: { labels, datasets: [{ data: vals, borderColor: varAccent(), backgroundColor: "rgba(11,102,255,0.08)", fill: true, tension: .25 }] },
-        options: commonChartOptions
+        options: { plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
       });
 
       document.getElementById("burstiness").textContent = (a.burst || 0).toFixed(2);
@@ -1244,7 +1169,7 @@
         return { name, sum, map };
       }).sort((x, y) => y.sum - x.sum);
 
-      const limit = window.innerWidth <= 600 ? 5 : 8;
+      const limit = isNarrow() ? 5 : 8;
       const top = totals.slice(0, limit);
 
       const allDays = new Set();
@@ -1265,7 +1190,7 @@
       charts.perPersonActivity = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
-        options: commonChartOptions
+        options: { plugins: { legend: { display: true } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
       });
     }
 
@@ -1274,14 +1199,18 @@
 
     function renderPeople(a) {
       const tbody = document.querySelector("#personTable tbody");
+      // build list from personSummary
       let list = a.personSummary.map(p => ({ name: p.name, count: p.count, chars: p.chars, avg: p.avg }));
 
+      // apply sorting
       if (currentSort.key === "messages") list.sort((x, y) => currentSort.dir === "desc" ? y.count - x.count : x.count - y.count);
       else if (currentSort.key === "chars") list.sort((x, y) => currentSort.dir === "desc" ? y.chars - x.chars : x.chars - y.chars);
       else if (currentSort.key === "avg") list.sort((x, y) => currentSort.dir === "desc" ? y.avg - x.avg : x.avg - y.avg);
 
+      // table rows
       tbody.innerHTML = "";
       if (!isNarrow()) {
+        // ensure cards removed
         document.querySelectorAll(".person-card").forEach(n => n.remove());
         for (const p of list) {
           const tr = document.createElement("tr");
@@ -1297,6 +1226,7 @@
           td.addEventListener("click", () => applyPersonFilter(td.dataset.person));
         });
       } else {
+        // render cards above the table
         renderPersonCards(list);
       }
 
@@ -1307,6 +1237,7 @@
     /* ---------- Render person cards for narrow screens ---------- */
     function renderPersonCards(list) {
       const tableParent = document.querySelector("#personTable").parentElement;
+      // remove existing cards
       tableParent.querySelectorAll(".person-card").forEach(n => n.remove());
       for (const p of list) {
         const div = document.createElement("div");
@@ -1334,7 +1265,7 @@
 
     /* ---------- By-Person Charts (bars) ---------- */
     function renderByPersonCharts(a) {
-      const top = a.personSummary.slice(0, window.innerWidth <= 600 ? 5 : 10);
+      const top = a.personSummary.slice(0, isNarrow() ? 5 : 10);
       const labels = top.map(t => t.name);
       const msgVals = top.map(t => t.count);
       const charVals = top.map(t => t.chars);
@@ -1344,7 +1275,7 @@
       charts.byPerson = new Chart(ctx1, {
         type: "bar",
         data: { labels, datasets: [{ data: msgVals, backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`) }] },
-        options: commonChartOptions
+        options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
       });
 
       const ctx2 = document.getElementById("charByPersonChart").getContext("2d");
@@ -1352,7 +1283,7 @@
       charts.charByPerson = new Chart(ctx2, {
         type: "bar",
         data: { labels, datasets: [{ data: charVals, backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`) }] },
-        options: commonChartOptions
+        options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
       });
     }
 
@@ -1364,6 +1295,7 @@
       const min = parseInt(document.getElementById("minThreadCount").value || "2", 10);
 
       const list = Array.from(a.stats.threads.entries()).map(([tid, t]) => {
+        // t may be an object or array depending on worker serialization
         const obj = (t && t.count !== undefined) ? t : (Array.isArray(t) ? t[1] : t);
         const people = obj.people ? (obj.people.size ? obj.people.size : (Array.isArray(obj.people) ? obj.people.length : 0)) : 0;
         const first = obj.first ? (new Date(obj.first)).toISOString().slice(0, 19).replace("T", " ") : "—";
@@ -1393,7 +1325,7 @@
       charts.reactTimeline = new Chart(ctx, {
         type: "line",
         data: { labels, datasets: [{ data: vals, borderColor: "#ff7a59", backgroundColor: "rgba(255,122,89,0.08)", fill: true, tension: .25 }] },
-        options: commonChartOptions
+        options: { plugins: { legend: { display: false } }, animation: { duration: 300 }, responsive: true, maintainAspectRatio: false }
       });
 
       const total = top.reduce((s, e) => s + e[1], 0);
@@ -1479,17 +1411,21 @@
     function varAccent() {
       return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0b66ff";
     }
-    /* Chunk 4/4 — Events, Filters, Exports, Suggestions, Chart helpers, Final Glue */
+
+    /* Chunk 3/4 end: paste Chunk 4/4 next */
+    /* Chunk 4/4 — Events, Filters, Exports, Suggestions, Final Glue */
 
     /* ---------- Person Filter ---------- */
     function applyPersonFilter(name) {
       if (!normalized) return;
       const { start, end } = buildTimeWindow();
+      // filter normalized by sender (case-insensitive)
       const subset = normalized.filter(m => (m.sender || "").toLowerCase() === (name || "").toLowerCase());
       if (!subset.length) {
         setStatus("No messages for that participant", "error");
         return;
       }
+      // use worker compute for subset to keep UI responsive
       setStatus("Computing filtered analytics...");
       const w = createAnalyticsWorker();
       const onMsg = (ev) => {
@@ -1511,6 +1447,7 @@
     function clearFilterAll() {
       if (!normalized) return;
       const { start, end } = buildTimeWindow();
+      // recompute base analytics (use worker)
       setStatus("Clearing filter and recomputing...");
       const w = createAnalyticsWorker();
       const onMsg = (ev) => {
@@ -1659,6 +1596,7 @@
 
     document.getElementById("applyTime").addEventListener("click", () => {
       if (!normalized) { setStatus("Load data first", "error"); return; }
+      // recompute analytics with time window
       computeAndRender();
     });
 
@@ -1714,87 +1652,16 @@
       }, 200);
     });
 
-    /* ---------- Chart responsiveness helpers (paste before init) ---------- */
-
-    const commonChartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 200 },
-      plugins: { legend: { display: true, position: 'top' } },
-      scales: {
-        x: { ticks: { maxRotation: 0, autoSkip: true } },
-        y: { beginAtZero: true }
-      }
-    };
-
-    function setChartContainerSize() {
-      const w = window.innerWidth;
-      // Breakpoints (same as CSS media queries)
-      const tinyBreakpoint = 600;
-      const mediumBreakpoint = 900;
-
-      // Apply classes for CSS variants
-      document.querySelectorAll('.chart-wrap').forEach(el => {
-        el.classList.remove('small', 'tiny');
-
-        if (w <= tinyBreakpoint) {
-          el.classList.add('tiny');
-          // ensure a sensible inline fallback height for older browsers
-          el.style.height = `calc(22vw)`;
-          el.style.maxHeight = `30vh`;
-        } else if (w <= mediumBreakpoint) {
-          el.classList.add('small');
-          el.style.height = `calc(30vw)`;
-          el.style.maxHeight = `40vh`;
-        } else {
-          el.style.height = `calc(40vw)`;
-          el.style.maxHeight = `60vh`;
-        }
-
-        // keep a minimum height in px to avoid too-small canvases
-        el.style.minHeight = '120px';
-      });
-    }
-
-    function safeResizeChart(chart) {
-      if (!chart) return;
-      requestAnimationFrame(() => {
-        try { if (typeof chart.resize === 'function') chart.resize(); } catch (e) { }
-        try { if (typeof chart.update === 'function') chart.update(); } catch (e) { }
-      });
-    }
-
-    function adjustChartSizes() {
-      setChartContainerSize();
-      Object.values(charts).forEach(c => safeResizeChart(c));
-    }
-
-    /* Debounced resize */
-    let _chartResizeTimer = null;
-    window.addEventListener('resize', () => {
-      if (_chartResizeTimer) clearTimeout(_chartResizeTimer);
-      _chartResizeTimer = setTimeout(adjustChartSizes, 120);
-    });
-    document.addEventListener('DOMContentLoaded', adjustChartSizes);
-
-    /* ResizeObserver to watch chart container size changes */
-    if (typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(entries => {
-        for (const e of entries) {
-          const canvas = e.target.querySelector('canvas');
-          if (!canvas) continue;
-          const chart = Object.values(charts).find(c => c && c.canvas === canvas);
-          if (chart) safeResizeChart(chart);
-        }
-      });
-      document.querySelectorAll('.chart-wrap').forEach(el => ro.observe(el));
-    }
-
     /* ---------- Final initialization ---------- */
     (function init() {
+      // small accessibility tweaks
       document.querySelectorAll(".btn").forEach(b => b.setAttribute("role", "button"));
+
+      // open first accordion by default
       const firstBody = document.querySelector(".accordion-body");
       if (firstBody) firstBody.classList.add("open");
+
+      // keyboard shortcut: Ctrl/Cmd+O to open file dialog
       window.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
           e.preventDefault();
@@ -1802,6 +1669,8 @@
         }
       });
     })();
+
+    /* ---------- End of script: close tags in HTML file below */
   </script>
 </body>
 
