@@ -1,827 +1,1438 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Chat Analytics</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet"><style>
-:root{--bg:#f3f6fb;--panel:#fff;--muted:#475569;--text:#0b1220;--accent:#0b66ff;--accent2:#6ea8ff;--border:rgba(11,102,255,0.06);--radius:12px;--shadow:0 10px 30px rgba(2,6,23,0.06);--glass:rgba(255,255,255,0.7)}
-:root.dark{--bg:#071025;--panel:#0b1220;--muted:#9aa3b2;--text:#e6eef8;--accent:#7aa2ff;--accent2:#4a7cff;--border:rgba(122,162,255,0.06);--glass:rgba(15,23,36,0.6);--shadow:0 10px 30px rgba(0,0,0,0.6)}
-html,body{margin:0;padding:0;background:linear-gradient(180deg,var(--bg),var(--bg) 400px,#dfe6f5 100%);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--text);min-height:100%;background-attachment:scroll;-webkit-font-smoothing:antialiased}
-.app{max-width:1200px;margin:20px auto;padding:16px}
-h1{margin:0;font-size:20px;color:var(--text)}
-.small{font-size:13px;color:var(--muted)}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.input{padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);min-height:40px}
-.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:var(--accent);color:#fff;transition:background .2s ease,opacity .2s ease}
-.btn:hover{opacity:.85}
-.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--border)}
-.btn.small{padding:8px 10px;font-size:13px}
-.file-wrap{position:relative;display:inline-block}
-.file-button{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:600;cursor:pointer;box-shadow:0 8px 20px rgba(11,102,255,0.12)}
-input[type=file]{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.card{background:var(--panel);border:1px solid var(--border);padding:14px;border-radius:var(--radius);box-shadow:var(--shadow)}
-.stat-row{display:flex;flex-wrap:wrap;gap:12px}
-.stat{padding:12px;border-radius:10px;background:var(--glass);border:1px solid var(--border);min-width:150px}
-.section-title{display:flex;justify-content:space-between;align-items:center}
-.grid{display:grid;grid-template-columns:1fr 380px;gap:16px;margin-top:16px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.accordion{margin-top:16px}
-.accordion-header{padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:10px;cursor:pointer;position:relative;z-index:10;transition:background .2s ease}
-.accordion-header:hover{background:rgba(11,102,255,0.04)}
-.accordion-body{overflow:hidden;max-height:0;opacity:0;transition:max-height .35s ease,opacity .25s ease;padding:0 12px}
-.accordion-body.open{max-height:2000px;opacity:1;padding:12px}
-.suggest-list{position:absolute;left:0;right:0;background:var(--panel);border:1px solid var(--border);border-radius:10px;max-height:260px;overflow:auto;z-index:9999;box-shadow:0 12px 30px rgba(2,6,23,0.12);opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .2s ease}
-.suggest-list.open{opacity:1;transform:translateY(0)}
-.suggest-item{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
-.suggest-item:hover{background:rgba(11,102,255,0.04)}
-.status{margin-top:12px;padding:10px;border-radius:10px;background:rgba(11,102,255,0.04);border:1px solid var(--border);display:none}
-.chart-wrap{height:260px}
-.message-snippet{color:var(--text);font-size:14px}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{padding:10px;border-bottom:1px solid var(--border);font-size:14px}
-th{color:var(--muted)}
-.footer{margin-top:20px;color:var(--muted);font-size:13px}
-</style></head><body>
-<div class="app">
-<header class="topbar">
-<div class="title"><h1>Chat Analytics</h1><div class="small">Local analysis</div></div>
-<div class="toolbar">
-<div class="file-wrap"><div id="fileBtn" class="file-button">Choose file</div><input id="fileInput" type="file" accept=".json"/></div>
-<button id="pasteBtn" class="btn small">Paste JSON</button>
-<select id="timePreset" class="input">
-<option value="all">All time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="custom">Custom range</option>
-</select>
-<input id="startDate" type="date" class="input" style="display:none">
-<input id="endDate" type="date" class="input" style="display:none">
-<button id="applyTime" class="btn small">Apply</button>
-<button id="themeToggle" class="btn ghost small">Theme</button>
-</div>
-</header>
+<!doctype html>
+<html lang="en">
 
-<div id="status" class="status"></div>
-
-<div class="grid">
-<main>
-<div class="card">
-<div class="section-title"><div><strong>Overview</strong><div class="small">Summary</div></div><div id="filterBanner" class="small"></div></div>
-<div id="overviewStats" class="stat-row"></div>
-
-<div style="display:flex;gap:12px;margin-top:12px">
-<div style="flex:1;position:relative">
-<label class="small">Participant</label>
-<input id="personSelect" class="input" placeholder="Type name or text">
-<div id="suggestList" class="suggest-list"></div>
-</div>
-<div style="min-width:140px">
-<label class="small">Min messages</label>
-<input id="minMessages" class="input" type="number" min="1" value="1">
-<div style="margin-top:8px;display:flex;gap:8px">
-<button id="applyQuick" class="btn small">Apply</button>
-<button id="clearFilter" class="btn ghost small">Clear</button>
-</div>
-</div>
-</div>
-</div>
-
-<div class="accordion" id="accordionRoot">
-
-<div class="accordion-item">
-<div class="accordion-header">Activity<div class="small">Messages per day</div></div>
-<div class="accordion-body">
-<div class="card">
-<div class="chart-wrap"><canvas id="timelineChart"></canvas></div>
-<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
-<div class="card" style="flex:1;min-width:160px"><div class="small">Peak hour</div><div id="peakHour"></div></div>
-<div class="card" style="min-width:160px"><div class="small">Daily variability</div><div id="burstiness"></div></div>
-<div class="card" style="min-width:160px"><div class="small">Weekday distribution</div><div id="weekdayDist" class="small"></div></div>
-</div>
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<div class="accordion-header">Participants<div class="small">Message stats</div></div>
-<div class="accordion-body">
-<div class="card">
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<div style="flex:1">
-<table id="personTable"><thead><tr><th>Participant</th><th>Messages</th><th>Characters</th><th>Avg length</th></tr></thead><tbody></tbody></table>
-</div>
-<div style="width:320px">
-<div class="small">Top words</div>
-<div id="topWords" class="small"></div>
-<div class="small" style="margin-top:12px">Top senders</div>
-<div class="chart-wrap"><canvas id="byPersonChart"></canvas></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<div class="accordion-header">Threads<div class="small">Conversation groups</div></div>
-<div class="accordion-body">
-<div class="card">
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<label class="small"><input id="showSingles" type="checkbox"> Include single-message threads</label>
-<label class="small">Minimum messages</label>
-<input id="minThreadCount" class="input" type="number" min="1" value="2" style="width:80px">
-<button id="applyThread" class="btn ghost small">Apply</button>
-</div>
-<table id="threadTable" style="margin-top:12px"><thead><tr><th>Topic</th><th>Messages</th><th>Participants</th><th>Days</th><th>First</th><th>Last</th></tr></thead><tbody></tbody></table>
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<div class="accordion-header">Reactions<div class="small">Emoji usage</div></div>
-<div class="accordion-body">
-<div class="card">
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<div style="flex:1">
-<div class="small">Top emojis</div>
-<div id="topEmojis" class="small"></div>
-<div class="small" style="margin-top:12px">Reaction timeline</div>
-<div class="chart-wrap"><canvas id="reactionTimeline"></canvas></div>
-</div>
-<div style="width:320px">
-<div class="small">Reaction summary</div>
-<div id="reactionSummary" class="small"></div>
-<div class="small" style="margin-top:12px">Reaction types</div>
-<div id="reactionTypes" class="small"></div>
-</div>
-</div>
-<div style="margin-top:12px">
-<div class="small">Reactor → Recipient matrix</div>
-<div id="matrixWrap" class="small"></div>
-</div>
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<div class="accordion-header">Pairs<div class="small">Who reacts to whom</div></div>
-<div class="accordion-body">
-<div class="card">
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<div style="flex:1">
-<div class="small">Top pairs</div>
-<div id="pairList" class="small"></div>
-</div>
-<div style="width:320px">
-<div class="small">Top reactors</div>
-<div id="topReactors" class="small"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<div class="accordion-header">Top messages<div class="small">Most reacted</div></div>
-<div class="accordion-body">
-<div class="card">
-<div id="topMessages" class="small"></div>
-</div>
-</div>
-</div>
-
-</div>
-</main>
-
-<aside>
-<div class="card">
-<div class="small">Actions</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-<button id="resetView" class="btn ghost small">Reset view</button>
-<button id="exportPairs" class="btn small">Export pairs</button>
-<button id="exportReactors" class="btn ghost small">Export reactors</button>
-</div>
-<div style="margin-top:12px">
-<div class="small">Active filter</div>
-<div id="currentFilter" class="small">None</div>
-</div>
-</div>
-
-<div class="card" style="margin-top:12px">
-<div class="small">Notes</div>
-<div class="small" style="margin-top:8px">Local processing only</div>
-</div>
-</aside>
-</div>
-
-<div class="footer">Local processing</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-/* ---------- Dark mode ---------- */
-function applyTheme(mode){
-  if(mode==="dark"){document.documentElement.classList.add("dark")}
-  else{document.documentElement.classList.remove("dark")}
-}
-(function initTheme(){
-  const saved=localStorage.getItem("theme");
-  if(saved){applyTheme(saved)}
-  else{
-    const prefers=window.matchMedia("(prefers-color-scheme: dark)").matches;
-    applyTheme(prefers?"dark":"light");
-  }
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{
-    if(!localStorage.getItem("theme")){
-      applyTheme(e.matches?"dark":"light");
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat Analytics</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #fff;
+      --muted: #475569;
+      --text: #0b1220;
+      --accent: #0b66ff;
+      --accent2: #6ea8ff;
+      --border: rgba(11, 102, 255, 0.06);
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+      --glass: rgba(255, 255, 255, 0.7)
     }
-  });
-})();
-document.getElementById("themeToggle").addEventListener("click",()=>{
-  const dark=document.documentElement.classList.contains("dark");
-  const newMode=dark?"light":"dark";
-  applyTheme(newMode);
-  localStorage.setItem("theme",newMode);
-});
 
-/* ---------- Status ---------- */
-function setStatus(msg,type="info"){
-  const s=document.getElementById("status");
-  s.style.display="block";
-  s.textContent=msg;
-  s.style.color=type==="error"?"#d33":"var(--muted)";
-}
-function clearStatus(){
-  const s=document.getElementById("status");
-  s.style.display="none";
-  s.textContent="";
-}
-
-/* ---------- Time window ---------- */
-function buildTimeWindow(){
-  const preset=document.getElementById("timePreset").value;
-  const sVal=document.getElementById("startDate").value;
-  const eVal=document.getElementById("endDate").value;
-
-  if(preset!=="custom"){
-    if(preset==="all") return {start:null,end:null};
-    const days=Number(preset);
-    const end=new Date();
-    const start=new Date(Date.now()-days*86400000);
-    return {start,end};
-  }
-
-  const start=sVal?new Date(sVal+"T00:00:00"):null;
-  const end=eVal?new Date(eVal+"T23:59:59.999"):null;
-  return {start,end};
-}
-
-/* ---------- Normalization helpers ---------- */
-function escapeHtml(s){return (s+"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
-function parseDate(s){
-  if(!s) return null;
-  s=s.replace(/\u202F/g," ").replace(/\u00A0/g," ").trim();
-  s=s.replace(/^[A-Za-z]+,\s*/,"");
-  s=s.replace(/\s+at\s+/i," ");
-  if(!/Z$/.test(s)&&!/UTC$/i.test(s)) s+=" UTC";
-  const d=new Date(s);
-  return isNaN(d)?null:d;
-}
-function normalizeEmoji(e){
-  if(!e) return e;
-  return e.replace(/[\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]/gu,"");
-}
-
-/* ---------- Data ---------- */
-let rawData=null;
-let normalized=null;
-let analytics=null;
-let baseAnalytics=null;
-let charts={};
-
-/* ---------- Load JSON ---------- */
-function loadJson(text){
-  try{
-    clearStatus();
-    setStatus("Parsing JSON...");
-    let parsed;
-    try{parsed=JSON.parse(text)}catch(e){
-      setStatus("Invalid JSON: "+e.message,"error");
-      return;
+    :root.dark {
+      --bg: #071025;
+      --panel: #0b1220;
+      --muted: #9aa3b2;
+      --text: #e6eef8;
+      --accent: #7aa2ff;
+      --accent2: #4a7cff;
+      --border: rgba(122, 162, 255, 0.06);
+      --glass: rgba(15, 23, 36, 0.6);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.6)
     }
-    rawData=parsed;
-    normalized=normalize(parsed);
-    if(!normalized.length){
-      setStatus("No messages found","error");
-      return;
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, var(--bg), var(--bg) 400px, #dfe6f5 100%);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color: var(--text);
+      min-height: 100%;
+      background-attachment: scroll;
+      -webkit-font-smoothing: antialiased
     }
-    computeAndRender();
-  }catch(e){
-    console.error(e);
-    setStatus("Unexpected error: "+e.message,"error");
-  }
-}
 
-/* ---------- Normalize messages ---------- */
-function normalize(raw){
-  let arr=[];
-  if(Array.isArray(raw)) arr=raw;
-  else if(raw.messages) arr=raw.messages;
-  else{
-    for(const k in raw){
-      if(Array.isArray(raw[k])){arr=raw[k];break;}
+    .app {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 16px
     }
-  }
-  return arr.map((m,i)=>{
-    const c=m.creator||{};
-    const name=c.name||c.displayName||c.email||"Unknown";
-    const email=c.email||"";
-    const text=m.text?String(m.text):"";
-    const ts=parseDate(m.created_date||m.createdDate||m.created||m.timestamp);
-    const upd=parseDate(m.updated_date||m.updatedDate||m.updated);
-    const topic=m.topic_id||m.thread_id||m.topic||null;
-    const id=m.message_id||m.id||("m"+i);
-    const reactions=Array.isArray(m.reactions)?m.reactions:[];
-    const prev=Array.isArray(m.previous_message_versions)?m.previous_message_versions:[];
-    const files=m.attachments||m.files||[];
-    return {sender:name,email,text,ts,updated:upd,topic,id,reactions,prev,files};
-  });
-}
 
-/* ---------- Compute analytics ---------- */
-function computeAnalytics(messages,start,end){
-  const stats={
-    total:0,
-    byPerson:new Map(),
-    chars:new Map(),
-    perDay:new Map(),
-    perHour:Array(24).fill(0),
-    words:new Map(),
-    emojis:new Map(),
-    emojiTimeline:new Map(),
-    threads:new Map(),
-    msgReacts:new Map(),
-    reactMap:new Map()
-  };
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--text)
+    }
 
-  const wordRe=/[A-Za-z0-9']{2,}/g;
-  const emojiRe=/(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
 
-  const inRange=(d)=>{
-    if(!d) return true;
-    if(start&&d<start) return false;
-    if(end&&d>end) return false;
-    return true;
-  };
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px
+    }
 
-  const sorted=messages.slice().sort((a,b)=>{
-    if(a.ts&&b.ts) return a.ts-b.ts;
-    if(a.ts) return -1;
-    if(b.ts) return 1;
-    return 0;
-  });
+    .input {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      min-height: 40px;
+      box-sizing: border-box
+    }
 
-  for(const m of sorted){
-    if(m.ts&&!inRange(m.ts)) continue;
-    stats.total++;
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: background .2s ease, opacity .2s ease
+    }
 
-    const name=m.sender;
-    stats.byPerson.set(name,(stats.byPerson.get(name)||0)+1);
-    const len=m.text.length;
-    stats.chars.set(name,(stats.chars.get(name)||0)+len);
+    .btn:hover {
+      opacity: .85
+    }
 
-    const day=m.ts?m.ts.toISOString().slice(0,10):"unknown";
-    stats.perDay.set(day,(stats.perDay.get(day)||0)+1);
-    if(m.ts) stats.perHour[m.ts.getHours()]++;
+    .btn.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border)
+    }
 
-    const words=m.text.match(wordRe)||[];
-    for(const w of words){
-      const lw=w.toLowerCase();
-      if(!stopWords.has(lw)){
-        stats.words.set(lw,(stats.words.get(lw)||0)+1);
+    .btn.small {
+      padding: 8px 10px;
+      font-size: 13px
+    }
+
+    .file-wrap {
+      position: relative;
+      display: inline-block
+    }
+
+    .file-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(11, 102, 255, 0.12)
+    }
+
+    input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      box-sizing: border-box
+    }
+
+    .stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      min-width: 150px;
+      box-sizing: border-box
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+      margin-top: 16px
+    }
+
+    @media(max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr
       }
     }
 
-    const emojis=m.text.match(emojiRe)||[];
-    for(const e of emojis){
-      const ne=normalizeEmoji(e);
-      stats.emojis.set(ne,(stats.emojis.get(ne)||0)+1);
-      stats.emojiTimeline.set(day,(stats.emojiTimeline.get(day)||0)+1);
+    .accordion {
+      margin-top: 16px
     }
 
-    const tid=m.topic||"__none__";
-    if(!stats.threads.has(tid)){
-      stats.threads.set(tid,{count:0,people:new Set(),first:m.ts,last:m.ts});
+    .accordion-header {
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      z-index: 10;
+      transition: background .2s ease
     }
-    const t=stats.threads.get(tid);
-    t.count++;
-    t.people.add(name);
-    if(m.ts&&(!t.first||m.ts<t.first)) t.first=m.ts;
-    if(m.ts&&(!t.last||m.ts>t.last)) t.last=m.ts;
 
-    if(!stats.msgReacts.has(m.id)){
-      stats.msgReacts.set(m.id,{sender:name,text:m.text,ts:m.ts,total:0,breakdown:new Map(),reactors:new Map()});
+    .accordion-header:hover {
+      background: rgba(11, 102, 255, 0.04)
     }
-  }
 
-  for(const m of sorted){
-    if(m.ts&&!inRange(m.ts)) continue;
-    const rec=m.sender;
-    const mid=m.id;
-    const mr=stats.msgReacts.get(mid);
-    for(const r of m.reactions){
-      const raw=r.emoji&&(r.emoji.unicode||r.emoji.text||r.emoji.name)||"";
-      const emo=normalizeEmoji(raw);
-      const reactors=Array.isArray(r.reactor_emails)?r.reactor_emails:[];
-      const count=reactors.length||1;
+    .accordion-body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .35s ease, opacity .25s ease, padding .25s ease;
+      padding: 0 12px
+    }
 
-      mr.total+=count;
-      mr.breakdown.set(emo,(mr.breakdown.get(emo)||0)+count);
+    .accordion-body.open {
+      max-height: 2000px;
+      opacity: 1;
+      padding: 12px
+    }
 
-      for(const re of reactors){
-        mr.reactors.set(re,(mr.reactors.get(re)||0)+1);
-        if(!stats.reactMap.has(re)) stats.reactMap.set(re,new Map());
-        const inner=stats.reactMap.get(re);
-        inner.set(rec,(inner.get(rec)||0)+1);
+    .suggest-list {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      max-height: 260px;
+      overflow: auto;
+      z-index: 9999;
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity .2s ease, transform .2s ease
+    }
+
+    .suggest-list.open {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .suggest-item {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer
+    }
+
+    .suggest-item:hover {
+      background: rgba(11, 102, 255, 0.04)
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(11, 102, 255, 0.04);
+      border: 1px solid var(--border);
+      display: none
+    }
+
+    .chart-wrap {
+      height: 260px
+    }
+
+    .message-snippet {
+      color: var(--text);
+      font-size: 14px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      text-align: left
+    }
+
+    th {
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none
+    }
+
+    th.sortable::after {
+      content: "";
+      margin-left: 4px;
+      border: 4px solid transparent;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      display: inline-block
+    }
+
+    th.sortable.asc::after {
+      border-bottom-color: var(--muted)
+    }
+
+    th.sortable.desc::after {
+      border-top-color: var(--muted)
+    }
+
+    .footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .link {
+      color: var(--accent);
+      cursor: pointer
+    }
+
+    .link:hover {
+      text-decoration: underline
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <h1>Chat Analytics</h1>
+        <div class="small">Local analysis</div>
+      </div>
+      <div class="toolbar">
+        <div class="file-wrap">
+          <div id="fileBtn" class="file-button">Choose file</div>
+          <input id="fileInput" type="file" accept=".json,.gchatenc">
+        </div>
+        <button id="pasteBtn" class="btn small">Paste JSON</button>
+        <select id="timePreset" class="input">
+          <option value="all">All time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="custom">Custom range</option>
+        </select>
+        <input id="startDate" type="date" class="input" style="display:none">
+        <input id="endDate" type="date" class="input" style="display:none">
+        <button id="applyTime" class="btn small">Apply</button>
+        <button id="themeToggle" class="btn ghost small">Theme</button>
+      </div>
+    </header>
+
+    <div id="status" class="status"></div>
+
+    <div class="grid">
+      <main>
+        <div class="card">
+          <div class="section-title">
+            <div>
+              <strong>Overview</strong>
+              <div class="small">Summary</div>
+            </div>
+            <div id="filterBanner" class="small"></div>
+          </div>
+          <div id="overviewStats" class="stat-row"></div>
+
+          <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+            <div style="flex:1;position:relative">
+              <label class="small">Participant</label>
+              <input id="personSelect" class="input" placeholder="Type name or text">
+              <div id="suggestList" class="suggest-list"></div>
+            </div>
+            <div style="min-width:160px">
+              <label class="small">Min messages</label>
+              <input id="minMessages" class="input" type="number" min="1" value="1">
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                <button id="applyQuick" class="btn small">Apply</button>
+                <button id="clearFilter" class="btn ghost small">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="accordionRoot">
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Activity
+              <div class="small">Messages per day</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div class="chart-wrap">
+                  <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="chart-wrap" style="margin-top:16px">
+                  <canvas id="perPersonActivityChart"></canvas>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+                  <div class="card" style="flex:1;min-width:160px">
+                    <div class="small">Peak hour</div>
+                    <div id="peakHour"></div>
+                  </div>
+                  <div class="card" style="min-width:160px">
+                    <div class="small">Daily variability</div>
+                    <div id="burstiness"></div>
+                  </div>
+                  <div class="card" style="min-width:160px">
+                    <div class="small">Weekday distribution</div>
+                    <div id="weekdayDist" class="small"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Participants
+              <div class="small">Message stats</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:260px">
+                    <table id="personTable">
+                      <thead>
+                        <tr>
+                          <th>Participant</th>
+                          <th class="sortable" data-sort="messages">Messages</th>
+                          <th class="sortable" data-sort="chars">Characters</th>
+                          <th class="sortable" data-sort="avg">Avg length</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                  <div style="width:340px;max-width:100%">
+                    <div class="small">Top words</div>
+                    <div id="topWords" class="small" style="margin-bottom:12px"></div>
+                    <div class="small">Messages by participant</div>
+                    <div class="chart-wrap" style="height:220px">
+                      <canvas id="byPersonChart"></canvas>
+                    </div>
+                    <div class="small" style="margin-top:12px">Characters by participant</div>
+                    <div class="chart-wrap" style="height:220px">
+                      <canvas id="charByPersonChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Threads
+              <div class="small">Conversation groups</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <label class="small">
+                    <input id="showSingles" type="checkbox"> Include single-message threads
+                  </label>
+                  <label class="small">Minimum messages</label>
+                  <input id="minThreadCount" class="input" type="number" min="1" value="2" style="width:80px">
+                  <button id="applyThread" class="btn ghost small">Apply</button>
+                </div>
+                <table id="threadTable" style="margin-top:12px">
+                  <thead>
+                    <tr>
+                      <th>Topic</th>
+                      <th>Messages</th>
+                      <th>Participants</th>
+                      <th>Days</th>
+                      <th>First</th>
+                      <th>Last</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Reactions
+              <div class="small">Emoji usage</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:260px">
+                    <div class="small">Top reaction emojis</div>
+                    <div id="topReactions" class="small"></div>
+                    <div class="small" style="margin-top:12px">Reaction timeline</div>
+                    <div class="chart-wrap">
+                      <canvas id="reactionTimeline"></canvas>
+                    </div>
+                  </div>
+                  <div style="width:320px;max-width:100%">
+                    <div class="small">Reaction summary</div>
+                    <div id="reactionSummary" class="small"></div>
+                    <div class="small" style="margin-top:12px">Reaction types</div>
+                    <div id="reactionTypes" class="small"></div>
+                  </div>
+                </div>
+                <div style="margin-top:12px">
+                  <div class="small">Reactor → Recipient matrix</div>
+                  <div id="matrixWrap" class="small"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Pairs
+              <div class="small">Who reacts to whom</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div style="flex:1">
+                    <div class="small">Top pairs</div>
+                    <div id="pairList" class="small"></div>
+                  </div>
+                  <div style="width:320px;max-width:100%">
+                    <div class="small">Top reactors</div>
+                    <div id="topReactors" class="small"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              Top messages
+              <div class="small">Most reacted</div>
+            </div>
+            <div class="accordion-body">
+              <div class="card">
+                <div id="topMessages" class="small"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <aside>
+        <div class="card">
+          <div class="small">Actions</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button id="resetView" class="btn ghost small">Reset view</button>
+            <button id="exportPairs" class="btn small">Export pairs</button>
+            <button id="exportReactors" class="btn ghost small">Export reactors</button>
+          </div>
+          <div style="margin-top:12px">
+            <div class="small">Active filter</div>
+            <div id="currentFilter" class="small">None</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="small">Notes</div>
+          <div class="small" style="margin-top:8px">Local processing only</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">Local processing</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+      /* ---------- Theme ---------- */
+      function applyTheme(mode) {
+        if (mode === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
       }
-    }
-  }
+      (function initTheme() {
+        const saved = localStorage.getItem("theme");
+        if (saved) applyTheme(saved);
+        else applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+          if (!localStorage.getItem("theme")) {
+            applyTheme(e.matches ? "dark" : "light");
+          }
+        });
+      })();
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const dark = document.documentElement.classList.contains("dark");
+        const newMode = dark ? "light" : "dark";
+        applyTheme(newMode);
+        localStorage.setItem("theme", newMode);
+      });
 
-  const personSummary=[...stats.byPerson.entries()].map(([name,count])=>{
-    const chars=stats.chars.get(name)||0;
-    return {name,count,chars,avg:chars/count};
-  }).sort((a,b)=>b.count-a.count);
+      /* ---------- Status ---------- */
+      function setStatus(msg, type = "info") {
+        const s = document.getElementById("status");
+        s.style.display = "block";
+        s.textContent = msg;
+        s.style.color = type === "error" ? "#d33" : "var(--muted)";
+      }
+      function clearStatus() {
+        const s = document.getElementById("status");
+        s.style.display = "none";
+        s.textContent = "";
+      }
 
-  const topWords=[...stats.words.entries()].sort((a,b)=>b[1]-a[1]).slice(0,40);
-  const topEmojis=[...stats.emojis.entries()].sort((a,b)=>b[1]-a[1]).slice(0,40);
+      /* ---------- Time window ---------- */
+      function buildTimeWindow() {
+        const preset = document.getElementById("timePreset").value;
+        const sVal = document.getElementById("startDate").value;
+        const eVal = document.getElementById("endDate").value;
 
-  const pairs=[];
-  for(const [reactor,map] of stats.reactMap.entries()){
-    for(const [rec,count] of map.entries()){
-      pairs.push({reactor,recipient:rec,count});
-    }
-  }
-  pairs.sort((a,b)=>b.count-a.count);
+        if (preset !== "custom") {
+          if (preset === "all") return { start: null, end: null };
+          const days = Number(preset);
+          const end = new Date();
+          const start = new Date(Date.now() - days * 86400000);
+          return { start, end };
+        }
 
-  const reactors=[...stats.reactMap.entries()].map(([r,map])=>{
-    return {reactor:r,total:[...map.values()].reduce((a,b)=>a+b,0)};
-  }).sort((a,b)=>b.total-a.total);
+        const start = sVal ? new Date(sVal + "T00:00:00") : null;
+        const end = eVal ? new Date(eVal + "T23:59:59.999") : null;
+        return { start, end };
+      }
 
-  const topMsgs=[...stats.msgReacts.entries()].map(([id,m])=>({
-    id,sender:m.sender,text:m.text,ts:m.ts,total:m.total
-  })).sort((a,b)=>b.total-a.total).slice(0,200);
+      /* ---------- Helpers ---------- */
+      function escapeHtml(s) {
+        return (s + "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+      }
+      function parseDate(s) {
+        if (!s) return null;
+        s = s.replace(/\u202F/g, " ").replace(/\u00A0/g, " ").trim();
+        s = s.replace(/^[A-Za-z]+,\s*/, "");
+        s = s.replace(/\s+at\s+/i, " ");
+        if (!/Z$/.test(s) && !/UTC$/i.test(s)) s += " UTC";
+        const d = new Date(s);
+        return isNaN(d) ? null : d;
+      }
+      function normalizeEmoji(e) {
+        if (!e) return e;
+        return e.replace(/[\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]/gu, "");
+      }
 
-  const perDayVals=[...stats.perDay.values()];
-  const mean=perDayVals.reduce((a,b)=>a+b,0)/perDayVals.length||0;
-  const burst=Math.sqrt(perDayVals.reduce((a,b)=>a+(b-mean)*(b-mean),0)/perDayVals.length||0);
+      /* ---------- Data ---------- */
+      let rawData = null;
+      let normalized = null;
+      let analytics = null;
+      let baseAnalytics = null;
+      let charts = {};
 
-  const weekday=[0,0,0,0,0,0,0];
-  for(const [day,count] of stats.perDay.entries()){
-    if(day==="unknown") continue;
-    const d=new Date(day+"T00:00:00");
-    weekday[d.getDay()]+=count;
-  }
+      /* ---------- Load JSON ---------- */
+      function loadJson(text) {
+        try {
+          clearStatus();
+          setStatus("Parsing JSON...");
+          let parsed;
+          try { parsed = JSON.parse(text); } catch (e) {
+            setStatus("Invalid JSON: " + e.message, "error");
+            return;
+          }
+          rawData = parsed;
+          normalized = normalize(parsed);
+          if (!normalized.length) {
+            setStatus("No messages found", "error");
+            return;
+          }
+          computeAndRender();
+        } catch (e) {
+          console.error(e);
+          setStatus("Unexpected error: " + e.message, "error");
+        }
+      }
 
-  const peakHour=stats.perHour.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v)[0]?.i??null;
+      /* ---------- Normalize messages ---------- */
+      function normalize(raw) {
+        let arr = [];
+        if (Array.isArray(raw)) arr = raw;
+        else if (raw.messages) arr = raw.messages;
+        else {
+          for (const k in raw) {
+            if (Array.isArray(raw[k])) { arr = raw[k]; break; }
+          }
+        }
 
-  return {
-    stats,personSummary,topWords,topEmojis,pairs,reactors,topMsgs,
-    burst,peakHour,weekday
-  };
-}
+        return arr.map((m, i) => {
+          const c = m.creator || {};
+          const name = c.name || c.displayName || c.email || "Unknown";
+          const email = c.email || "";
+          const text = m.text ? String(m.text) : "";
+          const ts = parseDate(m.created_date || m.createdDate || m.created || m.timestamp);
+          const upd = parseDate(m.updated_date || m.updatedDate || m.updated);
+          const topic = m.topic_id || m.thread_id || m.topic || null;
+          const id = m.message_id || m.id || ("m" + i);
+          const reactions = Array.isArray(m.reactions) ? m.reactions : [];
+          const prev = Array.isArray(m.previous_message_versions) ? m.previous_message_versions : [];
+          const files = m.attachments || m.files || [];
 
-/* ---------- Compute + Render ---------- */
-function computeAndRender(){
-  const {start,end}=buildTimeWindow();
-  analytics=computeAnalytics(normalized,start,end);
-  baseAnalytics=analytics;
-  renderAll();
-  clearStatus();
-}
+          return { sender: name, email, text, ts, updated: upd, topic, id, reactions, prev, files };
+        });
+      }
 
-function renderAll(){
-  renderOverview();
-  renderTimeline();
-  renderPeople();
-  renderThreads();
-  renderReactions();
-  renderPairs();
-  renderTopMessages();
-}
+      /* ---------- Analytics Engine ---------- */
+      function computeAnalytics(messages, start, end) {
+        const stats = {
+          total: 0,
+          byPerson: new Map(),
+          chars: new Map(),
+          perDay: new Map(),
+          perHour: Array(24).fill(0),
+          words: new Map(),
+          textEmojis: new Map(),
+          reactionEmojis: new Map(),
+          emojiTimeline: new Map(),
+          threads: new Map(),
+          msgReacts: new Map(),
+          reactMap: new Map(),
+          perPersonDaily: new Map()
+        };
 
-/* ---------- Render sections ---------- */
-function renderOverview(){
-  const o=document.getElementById("overviewStats");
-  o.innerHTML="";
-  const a=analytics;
-  const total=a.stats.total;
-  const people=a.personSummary.length;
-  const reacts=a.topEmojis.reduce((s,e)=>s+e[1],0);
-  const top=a.topEmojis[0]?`${a.topEmojis[0][0]} x${a.topEmojis[0][1]}`:"—";
+        const wordRe = /[\p{L}\p{N}’']+/gu;
+        const emojiRe = /\p{Emoji_Presentation}|\p{Emoji}\uFE0F/gu;
 
-  function box(label,val){
-    const d=document.createElement("div");
-    d.className="stat";
-    d.innerHTML=`<div style="font-weight:700">${val}</div><div class="small">${label}</div>`;
-    return d;
-  }
-  o.appendChild(box("Total messages",total));
-  o.appendChild(box("Participants",people));
-  o.appendChild(box("Total reactions",reacts));
-  o.appendChild(box("Top emoji",top));
-}
+        const inRange = (d) => {
+          if (!d) return true;
+          if (start && d < start) return false;
+          if (end && d > end) return false;
+          return true;
+        };
 
-function renderTimeline(){
-  const a=analytics;
-  const days=[...a.stats.perDay.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
-  const labels=days.map(d=>d[0]);
-  const vals=days.map(d=>d[1]);
-  const ctx=document.getElementById("timelineChart").getContext("2d");
-  if(charts.timeline) charts.timeline.destroy();
-  charts.timeline=new Chart(ctx,{
-    type:"line",
-    data:{labels,datasets:[{data:vals,borderColor:varAccent(),backgroundColor:"rgba(11,102,255,0.08)",fill:true,tension:.25}]},
-    options:{plugins:{legend:{display:false}},animation:{duration:300}}
-  });
-  document.getElementById("burstiness").textContent=a.burst.toFixed(2);
-  document.getElementById("peakHour").textContent=a.peakHour!==null?a.peakHour+":00":"—";
-  document.getElementById("weekdayDist").textContent=a.weekday.map((v,i)=>["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i]+":"+v).join(" • ");
-}
+        const sorted = messages.slice().sort((a, b) => {
+          if (a.ts && b.ts) return a.ts - b.ts;
+          if (a.ts) return -1;
+          if (b.ts) return 1;
+          return 0;
+        });
 
-function varAccent(){
-  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#0b66ff";
-}
+        for (const m of sorted) {
+          if (m.ts && !inRange(m.ts)) continue;
+          stats.total++;
 
-function renderPeople(){
-  const a=analytics;
-  const tbody=document.querySelector("#personTable tbody");
-  tbody.innerHTML="";
-  for(const p of a.personSummary){
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="link" data-person="${escapeHtml(p.name)}">${escapeHtml(p.name)}</td><td>${p.count}</td><td>${p.chars}</td><td>${p.avg.toFixed(1)}</td>`;
-    tbody.appendChild(tr);
-  }
-  tbody.querySelectorAll("td.link").forEach(td=>{
-    td.addEventListener("click",()=>applyPersonFilter(td.dataset.person));
-  });
+          const name = m.sender;
+          stats.byPerson.set(name, (stats.byPerson.get(name) || 0) + 1);
 
-  const top=a.personSummary.slice(0,10);
-  const ctx=document.getElementById("byPersonChart").getContext("2d");
-  if(charts.byPerson) charts.byPerson.destroy();
-  charts.byPerson=new Chart(ctx,{
-    type:"bar",
-    data:{labels:top.map(t=>t.name),datasets:[{data:top.map(t=>t.count),backgroundColor:top.map((_,i)=>`hsl(${i*30},80%,60%)`)}]},
-    options:{indexAxis:"y",plugins:{legend:{display:false}},animation:{duration:300}}
-  });
-}
+          const len = m.text.length;
+          stats.chars.set(name, (stats.chars.get(name) || 0) + len);
 
-function renderThreads(){
-  const a=analytics;
-  const tbody=document.querySelector("#threadTable tbody");
-  tbody.innerHTML="";
-  const show=document.getElementById("showSingles").checked;
-  const min=parseInt(document.getElementById("minThreadCount").value||"2",10);
+          const day = m.ts ? m.ts.toISOString().slice(0, 10) : "unknown";
+          stats.perDay.set(day, (stats.perDay.get(day) || 0) + 1);
 
-  const list=[...a.stats.threads.entries()].map(([tid,t])=>({tid,t}))
-    .filter(x=>show?x.t.count>=min:(x.t.count>1&&x.t.count>=min))
-    .sort((a,b)=>b.t.count-a.t.count);
+          if (m.ts) stats.perHour[m.ts.getHours()]++;
 
-  for(const x of list){
-    const t=x.t;
-    const first=t.first?t.first.toISOString().slice(0,19).replace("T"," "):"—";
-    const last=t.last?t.last.toISOString().slice(0,19).replace("T"," "):"—";
-    const days=t.first&&t.last?Math.round((t.last-t.first)/86400000):0;
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${escapeHtml(x.tid)}</td><td>${t.count}</td><td>${t.people.size}</td><td>${days}</td><td>${first}</td><td>${last}</td>`;
-    tbody.appendChild(tr);
-  }
-}
+          if (!stats.perPersonDaily.has(name)) stats.perPersonDaily.set(name, new Map());
+          const ppd = stats.perPersonDaily.get(name);
+          ppd.set(day, (ppd.get(day) || 0) + 1);
 
-function renderReactions(){
-  const a=analytics;
-  const top=a.topEmojis.slice(0,20);
-  document.getElementById("topEmojis").innerHTML=top.map(e=>`<div><strong>${escapeHtml(e[0])}</strong> x${e[1]}</div>`).join("");
+          const words = m.text.match(wordRe) || [];
+          for (const w of words) {
+            const lw = w.toLowerCase();
+            if (!stopWords.has(lw)) {
+              stats.words.set(lw, (stats.words.get(lw) || 0) + 1);
+            }
+          }
 
-  const days=[...a.stats.emojiTimeline.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
-  const labels=days.map(d=>d[0]);
-  const vals=days.map(d=>d[1]);
-  const ctx=document.getElementById("reactionTimeline").getContext("2d");
-  if(charts.reactTimeline) charts.reactTimeline.destroy();
-  charts.reactTimeline=new Chart(ctx,{
-    type:"line",
-    data:{labels,datasets:[{data:vals,borderColor:"#ff7a59",backgroundColor:"rgba(255,122,89,0.08)",fill:true,tension:.25}]},
-    options:{plugins:{legend:{display:false}},animation:{duration:300}}
-  });
+          const emojis = m.text.match(emojiRe) || [];
+          for (const e of emojis) {
+            const ne = normalizeEmoji(e);
+            stats.textEmojis.set(ne, (stats.textEmojis.get(ne) || 0) + 1);
+          }
 
-  const total=top.reduce((s,e)=>s+e[1],0);
-  document.getElementById("reactionSummary").textContent="Total reactions: "+total;
-  document.getElementById("reactionTypes").textContent=top.map(e=>`${escapeHtml(e[0])} x${e[1]}`).join(" • ");
+          const tid = m.topic || "__none__";
+          if (!stats.threads.has(tid)) {
+            stats.threads.set(tid, { count: 0, people: new Set(), first: m.ts, last: m.ts });
+          }
+          const t = stats.threads.get(tid);
+          t.count++;
+          t.people.add(name);
+          if (m.ts && (!t.first || m.ts < t.first)) t.first = m.ts;
+          if (m.ts && (!t.last || m.ts > t.last)) t.last = m.ts;
 
-  renderMatrix();
-}
+          if (!stats.msgReacts.has(m.id)) {
+            stats.msgReacts.set(m.id, { sender: name, text: m.text, ts: m.ts, total: 0, breakdown: new Map(), reactors: new Map() });
+          }
+        }
 
-function renderMatrix(){
-  const a=analytics;
-  const wrap=document.getElementById("matrixWrap");
-  wrap.innerHTML="";
-  const pairs=a.pairs.slice(0,50);
-  const reactors=[...new Set(pairs.map(p=>p.reactor))].slice(0,20);
-  const recips=[...new Set(pairs.map(p=>p.recipient))].slice(0,20);
-  if(!reactors.length||!recips.length){
-    wrap.textContent="Not enough data";
-    return;
-  }
-  const table=document.createElement("table");
-  const head=document.createElement("thead");
-  head.innerHTML=`<tr><th>Reactor \\ Recipient</
-<th>${recips.map(r=>escapeHtml(r)).join("</th><th>")}</th></tr>`;
-  table.appendChild(head);
-  const tbody=document.createElement("tbody");
-  for(const reactor of reactors){
-    const tr=document.createElement("tr");
-    let row=`<td><strong>${escapeHtml(reactor)}</strong></td>`;
-    for(const rec of recips){
-      const inner=a.stats.reactMap.get(reactor);
-      const count=inner?inner.get(rec)||0:0;
-      const bg=count?heatColor(count,1):"transparent";
-      const color=count?"#fff":"inherit";
-      row+=`<td style="background:${bg};color:${color};text-align:center">${count}</td>`;
-    }
-    tr.innerHTML=row;
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  wrap.appendChild(table);
-}
+        for (const m of sorted) {
+          if (m.ts && !inRange(m.ts)) continue;
+          const rec = m.sender;
+          const mid = m.id;
+          const mr = stats.msgReacts.get(mid);
 
-function heatColor(v,min){
-  const ratio=Math.min(1,(v-min)/(v||1));
-  const h=Math.round(220-ratio*120);
-  return `hsl(${h},85%,45%)`;
-}
+          for (const r of m.reactions) {
+            let rawEmoji = null;
+            if (r.emoji) {
+              rawEmoji = r.emoji.unicode || r.emoji.text || r.emoji.name || r.emoji;
+            } else if (typeof r === "string") {
+              rawEmoji = r;
+            }
+            const emo = normalizeEmoji(rawEmoji || "");
 
-function renderPairs(){
-  const a=analytics;
-  const list=document.getElementById("pairList");
-  list.innerHTML=a.pairs.slice(0,200).map(p=>`<div style="padding:6px;border-bottom:1px solid var(--border)"><strong>${escapeHtml(p.reactor)}</strong> → <strong>${escapeHtml(p.recipient)}</strong> : ${p.count}</div>`).join("")||"None";
-  const r=document.getElementById("topReactors");
-  r.innerHTML=a.reactors.slice(0,40).map(x=>`<div style="padding:6px;border-bottom:1px solid var(--border)">${escapeHtml(x.reactor)} — ${x.total}</div>`).join("")||"None";
-}
+            const reactors = Array.isArray(r.reactor_emails) ? r.reactor_emails :
+              Array.isArray(r.reactors) ? r.reactors : [];
+            const unique = new Set(reactors);
+            const count = unique.size || 1;
 
-function renderTopMessages(){
-  const a=analytics;
-  const wrap=document.getElementById("topMessages");
-  wrap.innerHTML=a.topMsgs.slice(0,50).map(m=>{
-    const ts=m.ts?m.ts.toISOString().slice(0,19).replace("T"," "):"";
-    return `<div style="padding:8px;border-bottom:1px solid var(--border)"><strong>${m.total}</strong> — ${escapeHtml(m.sender)} — <span class="message-snippet">${escapeHtml((m.text||"").slice(0,160))}</span><div class="small">${ts}</div></div>`;
-  }).join("")||"None";
-}
+            mr.total += count;
+            mr.breakdown.set(emo, (mr.breakdown.get(emo) || 0) + count);
 
-/* ---------- Filters ---------- */
-function applyPersonFilter(name){
-  if(!normalized) return;
-  const {start,end}=buildTimeWindow();
-  const subset=normalized.filter(m=>m.sender.toLowerCase()===name.toLowerCase());
-  if(!subset.length){
-    setStatus("No messages for that participant","error");
-    return;
-  }
-  analytics=computeAnalytics(subset,start,end);
-  renderAll();
-  document.getElementById("currentFilter").textContent="Participant: "+name;
-  document.getElementById("filterBanner").textContent="Filtered by participant";
-}
+            stats.reactionEmojis.set(emo, (stats.reactionEmojis.get(emo) || 0) + count);
 
-function clearFilterAll(){
-  if(!normalized) return;
-  const {start,end}=buildTimeWindow();
-  analytics=computeAnalytics(normalized,start,end);
-  baseAnalytics=analytics;
-  renderAll();
-  document.getElementById("personSelect").value="";
-  document.getElementById("currentFilter").textContent="None";
-  document.getElementById("filterBanner").textContent="";
-  document.getElementById("suggestList").classList.remove("open");
-  document.getElementById("suggestList").style.display="none";
-}
+            const day = m.ts ? m.ts.toISOString().slice(0, 10) : "unknown";
+            stats.emojiTimeline.set(day, (stats.emojiTimeline.get(day) || 0) + count);
 
-/* ---------- Person suggestions ---------- */
-function buildSuggestions(){
-  if(!baseAnalytics) return [];
-  const list=[];
-  const samples=new Map();
-  for(const m of normalized){
-    if(!samples.has(m.sender)&&m.text) samples.set(m.sender,m.text.slice(0,80));
-  }
-  for(const p of baseAnalytics.personSummary){
-    list.push({name:p.name,sample:samples.get(p.name)||""});
-  }
-  return list;
-}
-function showSuggestions(query){
-  const box=document.getElementById("suggestList");
-  const q=(query||"").toLowerCase().trim();
-  const all=buildSuggestions();
-  if(!all.length){box.style.display="none";box.classList.remove("open");return;}
-  const filtered=all.filter(x=>{
-    if(!q) return true;
-    return x.name.toLowerCase().includes(q)||(x.sample&&x.sample.toLowerCase().includes(q));
-  }).slice(0,40);
-  if(!filtered.length){box.style.display="none";box.classList.remove("open");return;}
-  box.innerHTML=filtered.map(x=>`<div class="suggest-item"><div><strong>${escapeHtml(x.name)}</strong></div><div class="small">${escapeHtml(x.sample)}</div></div>`).join("");
-  box.style.display="block";
-  requestAnimationFrame(()=>box.classList.add("open"));
-  box.querySelectorAll(".suggest-item").forEach((el,i)=>{
-    const item=filtered[i];
-    el.addEventListener("click",()=>{
-      document.getElementById("personSelect").value=item.name;
-      box.classList.remove("open");
-      box.style.display="none";
-      applyPersonFilter(item.name);
-    });
-  });
-}
+            for (const re of unique) {
+              mr.reactors.set(re, (mr.reactors.get(re) || 0) + 1);
+              if (!stats.reactMap.has(re)) stats.reactMap.set(re, new Map());
+              const inner = stats.reactMap.get(re);
+              inner.set(rec, (inner.get(rec) || 0) + 1);
+            }
+          }
+        }
 
-/* ---------- CSV export ---------- */
-function exportCSV(rows,name){
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function exportPairsCSV(){
-  if(!baseAnalytics) return;
-  const rows=[["reactor","recipient","count"]];
-  for(const p of baseAnalytics.pairs) rows.push([p.reactor,p.recipient,p.count]);
-  exportCSV(rows,"pairs.csv");
-}
-function exportReactorsCSV(){
-  if(!baseAnalytics) return;
-  const rows=[["reactor","total"]];
-  for(const r of baseAnalytics.reactors) rows.push([r.reactor,r.total]);
-  exportCSV(rows,"reactors.csv");
-}
+        const personSummary = [...stats.byPerson.entries()].map(([name, count]) => {
+          const chars = stats.chars.get(name) || 0;
+          return { name, count, chars, avg: chars / count };
+        }).sort((a, b) => b.count - a.count);
 
-/* ---------- Accordion ---------- */
-document.getElementById("accordionRoot").addEventListener("click",e=>{
-  const header=e.target.closest(".accordion-header");
-  if(!header) return;
-  const body=header.nextElementSibling;
-  if(!body) return;
-  const open=body.classList.contains("open");
-  document.querySelectorAll(".accordion-body").forEach(b=>b.classList.remove("open"));
-  if(!open) body.classList.add("open");
-});
+        const topWords = [...stats.words.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
+        const topReactions = [...stats.reactionEmojis.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
 
-/* ---------- Events ---------- */
-document.getElementById("fileBtn").addEventListener("click",()=>document.getElementById("fileInput").click());
-document.getElementById("fileInput").addEventListener("change",async e=>{
-  const f=e.target.files&&e.target.files[0];
-  if(!f) return;
-  setStatus("Loading file...");
-  const text=await f.text();
-  loadJson(text);
-});
-document.getElementById("pasteBtn").addEventListener("click",()=>{
-  const t=prompt("Paste JSON");
-  if(t) loadJson(t);
-});
-document.getElementById("timePreset").addEventListener("change",e=>{
-  const v=e.target.value;
-  const s=document.getElementById("startDate");
-  const ed=document.getElementById("endDate");
-  if(v==="custom"){s.style.display="inline-block";ed.style.display="inline-block";}
-  else{s.style.display="none";ed.style.display="none";}
-});
-document.getElementById("applyTime").addEventListener("click",()=>{
-  if(!normalized){setStatus("Load data first","error");return;}
-  computeAndRender();
-});
-document.getElementById("personSelect").addEventListener("input",e=>{
-  if(!baseAnalytics) return;
-  showSuggestions(e.target.value);
-});
-document.addEventListener("click",e=>{
-  if(!e.target.closest(".person-suggest")&&!e.target.closest("#personSelect")){
-    const box=document.getElementById("suggestList");
-    box.classList.remove("open");
-    box.style.display="none";
-  }
-});
-document.getElementById("applyQuick").addEventListener("click",()=>{
-  const name=document.getElementById("personSelect").value.trim();
-  const min=parseInt(document.getElementById("minMessages").value||"1",10);
-  if(name) applyPersonFilter(name);
-  const rows=document.querySelectorAll("#personTable tbody tr");
-  rows.forEach(r=>{
-    const msgs=parseInt(r.children[1].textContent||"0",10);
-    r.style.display=msgs>=min?"":"none";
-  });
-});
-document.getElementById("clearFilter").addEventListener("click",clearFilterAll);
-document.getElementById("applyThread").addEventListener("click",()=>renderThreads());
-document.getElementById("resetView").addEventListener("click",clearFilterAll);
-document.getElementById("exportPairs").addEventListener("click",exportPairsCSV);
-document.getElementById("exportReactors").addEventListener("click",exportReactorsCSV);
+        const pairs = [];
+        for (const [reactor, map] of stats.reactMap.entries()) {
+          for (const [rec, count] of map.entries()) {
+            pairs.push({ reactor, recipient: rec, count });
+          }
+        }
+        pairs.sort((a, b) => b.count - a.count);
 
-/* ---------- Stopwords ---------- */
-const stopWords=new Set(["the","and","to","a","i","you","it","is","in","for","of","on","that","this","we","are","was","with","as","be","have","not","but","they","at","or","an","so","if","from","by","what","your","do","me","my","im","u","lol"]);
+        const reactors = [...stats.reactMap.entries()].map(([r, map]) => {
+          return { reactor: r, total: [...map.values()].reduce((a, b) => a + b, 0) };
+        }).sort((a, b) => b.total - a.total);
 
-/* ---------- Initial ---------- */
-document.getElementById("overviewStats").innerHTML='<div class="stat"><div style="font-weight:700">Load data</div><div class="small">Choose or paste JSON</div></div>';
-setStatus("Ready. Load JSON to begin.");
-</script>
-</div>
+        const topMsgs = [...stats.msgReacts.entries()].map(([id, m]) => ({
+          id, sender: m.sender, text: m.text, ts: m.ts, total: m.total
+        })).sort((a, b) => b.total - a.total).slice(0, 200);
+
+        const perDayVals = [...stats.perDay.values()];
+        const mean = perDayVals.reduce((a, b) => a + b, 0) / perDayVals.length || 0;
+        const burst = Math.sqrt(perDayVals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / perDayVals.length || 0);
+
+        const weekday = [0, 0, 0, 0, 0, 0, 0];
+        for (const [day, count] of stats.perDay.entries()) {
+          if (day === "unknown") continue;
+          const d = new Date(day + "T00:00:00");
+          weekday[d.getDay()] += count;
+        }
+
+        const peakHour = stats.perHour.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v)[0]?.i ?? null;
+
+        return {
+          stats,
+          personSummary,
+          topWords,
+          topReactions,
+          pairs,
+          reactors,
+          topMsgs,
+          burst,
+          peakHour,
+          weekday
+        };
+      }
+
+      /* ---------- Compute + Render ---------- */
+      function computeAndRender() {
+        const { start, end } = buildTimeWindow();
+        analytics = computeAnalytics(normalized, start, end);
+        baseAnalytics = analytics;
+        renderAll();
+        clearStatus();
+      }
+      /* ---------- Render All ---------- */
+      function renderAll() {
+        renderOverview();
+        renderTimeline();
+        renderPerPersonActivity();
+        renderPeople();
+        renderThreads();
+        renderReactions();
+        renderPairs();
+        renderTopMessages();
+      }
+
+      /* ---------- Overview ---------- */
+      function renderOverview() {
+        const o = document.getElementById("overviewStats");
+        o.innerHTML = "";
+        const a = analytics;
+
+        const total = a.stats.total;
+        const people = a.personSummary.length;
+        const reacts = [...a.stats.reactionEmojis.values()].reduce((s, v) => s + v, 0);
+        const top = a.topReactions[0] ? `${escapeHtml(a.topReactions[0][0])} x${a.topReactions[0][1]}` : "—";
+
+        function box(label, val) {
+          const d = document.createElement("div");
+          d.className = "stat";
+          d.innerHTML = `<div style="font-weight:700">${val}</div><div class="small">${label}</div>`;
+          return d;
+        }
+        o.appendChild(box("Total messages", total));
+        o.appendChild(box("Participants", people));
+        o.appendChild(box("Total reactions", reacts));
+        o.appendChild(box("Top reaction emoji", top));
+      }
+
+      /* ---------- Timeline Chart ---------- */
+      function renderTimeline() {
+        const a = analytics;
+        const days = [...a.stats.perDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+        const labels = days.map(d => d[0]);
+        const vals = days.map(d => d[1]);
+
+        const ctx = document.getElementById("timelineChart").getContext("2d");
+        if (charts.timeline) charts.timeline.destroy();
+        charts.timeline = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              data: vals,
+              borderColor: varAccent(),
+              backgroundColor: "rgba(11,102,255,0.08)",
+              fill: true,
+              tension: .25
+            }]
+          },
+          options: { plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+
+        document.getElementById("burstiness").textContent = analytics.burst.toFixed(2);
+        document.getElementById("peakHour").textContent = analytics.peakHour !== null ? analytics.peakHour + ":00" : "—";
+        document.getElementById("weekdayDist").textContent =
+          analytics.weekday.map((v, i) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i] + ":" + v).join(" • ");
+      }
+
+      /* ---------- Per-Person Activity Chart ---------- */
+      function renderPerPersonActivity() {
+        const a = analytics;
+        const per = a.stats.perPersonDaily;
+
+        const totals = [...per.entries()].map(([name, map]) => {
+          const sum = [...map.values()].reduce((a, b) => a + b, 0);
+          return { name, sum, map };
+        }).sort((a, b) => b.sum - a.sum).slice(0, 8);
+
+        const allDays = new Set();
+        for (const t of totals) {
+          for (const d of t.map.keys()) allDays.add(d);
+        }
+        const labels = [...allDays].sort();
+
+        const datasets = totals.map((t, i) => ({
+          label: t.name,
+          data: labels.map(d => t.map.get(d) || 0),
+          borderColor: `hsl(${i * 40},80%,55%)`,
+          backgroundColor: `hsla(${i * 40},80%,55%,0.15)`,
+          fill: true,
+          tension: .25
+        }));
+
+        const ctx = document.getElementById("perPersonActivityChart").getContext("2d");
+        if (charts.perPersonActivity) charts.perPersonActivity.destroy();
+        charts.perPersonActivity = new Chart(ctx, {
+          type: "line",
+          data: { labels, datasets },
+          options: { plugins: { legend: { display: true } }, animation: { duration: 300 } }
+        });
+      }
+
+      /* ---------- Participants ---------- */
+      let currentSort = { key: "messages", dir: "desc" };
+
+      function renderPeople() {
+        const a = analytics;
+        const tbody = document.querySelector("#personTable tbody");
+        tbody.innerHTML = "";
+
+        let list = [...a.personSummary];
+
+        if (currentSort.key === "messages") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.count - a.count : a.count - b.count);
+        } else if (currentSort.key === "chars") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.chars - a.chars : a.chars - b.chars);
+        } else if (currentSort.key === "avg") {
+          list.sort((a, b) => currentSort.dir === "desc" ? b.avg - a.avg : a.avg - b.avg);
+        }
+
+        for (const p of list) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+      <td class="link" data-person="${escapeHtml(p.name)}">${escapeHtml(p.name)}</td>
+      <td>${p.count}</td>
+      <td>${p.chars}</td>
+      <td>${p.avg.toFixed(1)}</td>
+    `;
+          tbody.appendChild(tr);
+        }
+
+        tbody.querySelectorAll("td.link").forEach(td => {
+          td.addEventListener("click", () => applyPersonFilter(td.dataset.person));
+        });
+
+        renderByPersonCharts();
+        renderTopWords();
+      }
+
+      /* ---------- Top Words ---------- */
+      function renderTopWords() {
+        const a = analytics;
+        const wrap = document.getElementById("topWords");
+        wrap.innerHTML = a.topWords.map(w => `${escapeHtml(w[0])} (${w[1]})`).join(", ");
+      }
+
+      /* ---------- By-Person Charts ---------- */
+      function renderByPersonCharts() {
+        const a = analytics;
+
+        const top = a.personSummary.slice(0, 10);
+        const labels = top.map(t => t.name);
+        const msgVals = top.map(t => t.count);
+        const charVals = top.map(t => t.chars);
+
+        const ctx1 = document.getElementById("byPersonChart").getContext("2d");
+        if (charts.byPerson) charts.byPerson.destroy();
+        charts.byPerson = new Chart(ctx1, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: msgVals,
+              backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`)
+            }]
+          },
+          options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+
+        const ctx2 = document.getElementById("charByPersonChart").getContext("2d");
+        if (charts.charByPerson) charts.charByPerson.destroy();
+        charts.charByPerson = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: charVals,
+              backgroundColor: labels.map((_, i) => `hsl(${i * 30},80%,60%)`)
+            }]
+          },
+          options: { indexAxis: "y", plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+      }
+
+      /* ---------- Threads ---------- */
+      function renderThreads() {
+        const a = analytics;
+        const tbody = document.querySelector("#threadTable tbody");
+        tbody.innerHTML = "";
+
+        const show = document.getElementById("showSingles").checked;
+        const min = parseInt(document.getElementById("minThreadCount").value || "2", 10);
+
+        const list = [...a.stats.threads.entries()].map(([tid, t]) => ({ tid, t }))
+          .filter(x => show ? x.t.count >= min : (x.t.count > 1 && x.t.count >= min))
+          .sort((a, b) => b.t.count - a.t.count);
+
+        for (const x of list) {
+          const t = x.t;
+          const first = t.first ? t.first.toISOString().slice(0, 19).replace("T", " ") : "—";
+          const last = t.last ? t.last.toISOString().slice(0, 19).replace("T", " ") : "—";
+          const days = t.first && t.last ? Math.round((t.last - t.first) / 86400000) : 0;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+      <td>${escapeHtml(x.tid)}</td>
+      <td>${t.count}</td>
+      <td>${t.people.size}</td>
+      <td>${days}</td>
+      <td>${first}</td>
+      <td>${last}</td>
+    `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      /* ---------- Reactions ---------- */
+      function renderReactions() {
+        const a = analytics;
+
+        const top = a.topReactions.slice(0, 20);
+        document.getElementById("topReactions").innerHTML =
+          top.map(e => `<div><strong>${escapeHtml(e[0])}</strong> x${e[1]}</div>`).join("");
+
+        const days = [...a.stats.emojiTimeline.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+        const labels = days.map(d => d[0]);
+        const vals = days.map(d => d[1]);
+
+        const ctx = document.getElementById("reactionTimeline").getContext("2d");
+        if (charts.reactTimeline) charts.reactTimeline.destroy();
+        charts.reactTimeline = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              data: vals,
+              borderColor: "#ff7a59",
+              backgroundColor: "rgba(255,122,89,0.08)",
+              fill: true,
+              tension: .25
+            }]
+          },
+          options: { plugins: { legend: { display: false } }, animation: { duration: 300 } }
+        });
+
+        const total = top.reduce((s, e) => s + e[1], 0);
+        document.getElementById("reactionSummary").textContent = "Total reactions: " + total;
+        document.getElementById("reactionTypes").textContent =
+          top.map(e => `${escapeHtml(e[0])} x${e[1]}`).join(" • ");
+
+        renderMatrix();
+      }
+
+      /* ---------- Reaction Matrix ---------- */
+      function renderMatrix() {
+        const a = analytics;
+        const wrap = document.getElementById("matrixWrap");
+        wrap.innerHTML = "";
+
+        const pairs = a.pairs.slice(0, 50);
+        const reactors = [...new Set(pairs.map(p => p.reactor))].slice(0, 20);
+        const recips = [...new Set(pairs.map(p => p.recipient))].slice(0, 20);
+
+        if (!reactors.length || !recips.length) {
+          wrap.textContent = "Not enough data";
+          return;
+        }
+
+        const table = document.createElement("table");
+        const head = document.createElement("thead");
+        head.innerHTML = `<tr><th>Reactor \\ Recipient</th>${recips.map(r => `<th>${escapeHtml(r)}</th>`).join("")}</tr>`;
+        table.appendChild(head);
+
+        const tbody = document.createElement("tbody");
+        for (const reactor of reactors) {
+          const tr = document.createElement("tr");
+          let row = `<td><strong>${escapeHtml(reactor)}</strong></td>`;
+          for (const rec of recips) {
+            const inner = a.stats.reactMap.get(reactor);
+            const count = inner ? inner.get(rec) || 0 : 0;
+            const bg = count ? heatColor(count, 1) : "transparent";
+            const color = count ? "#fff" : "inherit";
+            row += `<td style="background:${bg};color:${color};text-align:center">${count}</td>`;
+          }
+          tr.innerHTML = row;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+      }
+
+      function heatColor(v, min) {
+        const ratio = Math.min(1, (v - min) / (v || 1));
+        const h = Math.round(220 - ratio * 120);
+        return `hsl(${h},85%,45%)`;
+      }
+
+      /* ---------- Pairs ---------- */
+      function renderPairs() {
+        const a = analytics;
+
+        document.getElementById("pairList").innerHTML =
+          a.pairs.slice(0, 200).map(p =>
+            `<div style="padding:6px;border-bottom:1px solid var(--border)">
+        <strong>${escapeHtml(p.reactor)}</strong> → <strong>${escapeHtml(p.recipient)}</strong> : ${p.count}
+      </div>`
+          ).join("") || "None";
+
+        document.getElementById("topReactors").innerHTML =
+          a.reactors.slice(0, 40).map(x =>
+            `<div style="padding:6px;border-bottom:1px solid var(--border)">
+        ${escapeHtml(x.reactor)} — ${x.total}
+      </div>`
+          ).join("") || "None";
+      }
+
+      /* ---------- Top Messages ---------- */
+      function renderTopMessages() {
+        const a = analytics;
+        const wrap = document.getElementById("topMessages");
+
+        wrap.innerHTML =
+          a.topMsgs.slice(0, 50).map(m => {
+            const ts = m.ts ? m.ts.toISOString().slice(0, 19).replace("T", " ") : "";
+            return `
+        <div style="padding:8px;border-bottom:1px solid var(--border)">
+          <strong>${m.total}</strong> — ${escapeHtml(m.sender)}
+          — <span class="message-snippet">${escapeHtml((m.text || "").slice(0, 160))}</span>
+          <div class="small">${ts}</div>
+        </div>
+      `;
+          }).join("") || "None";
+      }
+
+      /* ---------- Sorting ---------- */
+      document.querySelectorAll("th.sortable").forEach(th => {
+        th.addEventListener("click", () => {
+          const key = th.dataset.sort;
+          if (currentSort.key === key) {
+            currentSort.dir = currentSort.dir === "desc" ? "asc" : "desc";
+          } else {
+            currentSort.key = key;
+            currentSort.dir = "desc";
+          }
+          document.querySelectorAll("th.sortable").forEach(x => x.classList.remove("asc", "desc"));
+          th.classList.add(currentSort.dir);
+          renderPeople();
+        });
+      });
+
+      /* ---------- Accent Color ---------- */
+      function varAccent() {
+        return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0b66ff";
+      }
+      /* ---------- Person Filter ---------- */
+      function applyPersonFilter(name) {
+        if (!normalized) return;
+        const { start, end } = buildTimeWindow();
+        const subset = normalized.filter(m => m.sender.toLowerCase() === name.toLowerCase());
+        if (!subset.length) {
+          setStatus("No messages for that participant", "error");
+          return;
+        }
+        analytics = computeAnalytics(subset, start, end);
+        renderAll();
+        document.getElementById("currentFilter").textContent = "Participant: " + name;
+        document.getElementById("filterBanner").textContent = "Filtered by participant";
+      }
+
+      function clearFilterAll() {
+        if (!normalized) return;
+        const { start, end } = buildTimeWindow();
+        analytics = computeAnalytics(normalized, start, end);
+        baseAnalytics = analytics;
+        renderAll();
+        document.getElementById("personSelect").value = "";
+        document.getElementById("currentFilter").textContent = "None";
+        document.getElementById("filterBanner").textContent = "";
+        document.getElementById("suggestList").classList.remove("open");
+        document.getElementById("suggestList").style.display = "none";
+      }
+
+      /* ---------- Suggestions ---------- */
+      function buildSuggestions() {
+        if (!baseAnalytics) return [];
+        const list = [];
+        const samples = new Map();
+        for (const m of normalized) {
+          if (!samples.has(m.sender) && m.text) samples.set(m.sender, m.text.slice(0, 80));
+        }
+        for (const p of baseAnalytics.personSummary) {
+          list.push({ name: p.name, sample: samples.get(p.name) || "" });
+        }
+        return list;
+      }
+
+      function showSuggestions(query) {
+        const box = document.getElementById("suggestList");
+        const q = (query || "").toLowerCase().trim();
+        const all = buildSuggestions();
+        if (!all.length) {
+          box.style.display = "none";
+          box.classList.remove("open");
+          return;
+        }
+        const filtered = all.filter(x => {
+          if (!q) return true;
+          return x.name.toLowerCase().includes(q) ||
+            (x.sample && x.sample.toLowerCase().includes(q));
+        }).slice(0, 40);
+
+        if (!filtered.length) {
+          box.style.display = "none";
+          box.classList.remove("open");
+          return;
+        }
+
+        box.innerHTML = filtered.map(x => `
+    <div class="suggest-item">
+      <div><strong>${escapeHtml(x.name)}</strong></div>
+      <div class="small">${escapeHtml(x.sample)}</div>
+    </div>
+  `).join("");
+
+        box.style.display = "block";
+        requestAnimationFrame(() => box.classList.add("open"));
+
+        box.querySelectorAll(".suggest-item").forEach((el, i) => {
+          const item = filtered[i];
+          el.addEventListener("click", () => {
+            document.getElementById("personSelect").value = item.name;
+            box.classList.remove("open");
+            box.style.display = "none";
+            applyPersonFilter(item.name);
+          });
+        });
+      }
+
+      /* ---------- CSV Export ---------- */
+      function exportCSV(rows, name) {
+        const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportPairsCSV() {
+        if (!baseAnalytics) return;
+        const rows = [["reactor", "recipient", "count"]];
+        for (const p of baseAnalytics.pairs) rows.push([p.reactor, p.recipient, p.count]);
+        exportCSV(rows, "pairs.csv");
+      }
+
+      function exportReactorsCSV() {
+        if (!baseAnalytics) return;
+        const rows = [["reactor", "total"]];
+        for (const r of baseAnalytics.reactors) rows.push([r.reactor, r.total]);
+        exportCSV(rows, "reactors.csv");
+      }
+
+      /* ---------- Accordion ---------- */
+      document.getElementById("accordionRoot").addEventListener("click", e => {
+        const header = e.target.closest(".accordion-header");
+        if (!header) return;
+        const body = header.nextElementSibling;
+        if (!body) return;
+
+        const open = body.classList.contains("open");
+        document.querySelectorAll(".accordion-body").forEach(b => b.classList.remove("open"));
+        if (!open) body.classList.add("open");
+      });
+
+      /* ---------- Events ---------- */
+      document.getElementById("fileBtn").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
+
+      document.getElementById("fileInput").addEventListener("change", async e => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        setStatus("Loading file...");
+        const text = await f.text();
+        loadJson(text);
+      });
+
+      document.getElementById("pasteBtn").addEventListener("click", () => {
+        const t = prompt("Paste JSON");
+        if (t) loadJson(t);
+      });
+
+      document.getElementById("timePreset").addEventListener("change", e => {
+        const v = e.target.value;
+        const s = document.getElementById("startDate");
+        const ed = document.getElementById("endDate");
+        if (v === "custom") {
+          s.style.display = "inline-block";
+          ed.style.display = "inline-block";
+        } else {
+          s.style.display = "none";
+          ed.style.display = "none";
+        }
+      });
+
+      document.getElementById("applyTime").addEventListener("click", () => {
+        if (!normalized) {
+          setStatus("Load data first", "error");
+          return;
+        }
+        computeAndRender();
+      });
+
+      document.getElementById("personSelect").addEventListener("input", e => {
+        if (!baseAnalytics) return;
+        showSuggestions(e.target.value);
+      });
+
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".person-suggest") &&
+          !e.target.closest("#personSelect")) {
+          const box = document.getElementById("suggestList");
+          box.classList.remove("open");
+          box.style.display = "none";
+        }
+      });
+
+      document.getElementById("applyQuick").addEventListener("click", () => {
+        const name = document.getElementById("personSelect").value.trim();
+        const min = parseInt(document.getElementById("minMessages").value || "1", 10);
+
+        if (name) applyPersonFilter(name);
+
+        const rows = document.querySelectorAll("#personTable tbody tr");
+        rows.forEach(r => {
+          const msgs = parseInt(r.children[1].textContent || "0", 10);
+          r.style.display = msgs >= min ? "" : "none";
+        });
+      });
+
+      document.getElementById("clearFilter").addEventListener("click", clearFilterAll);
+      document.getElementById("applyThread").addEventListener("click", () => renderThreads());
+      document.getElementById("resetView").addEventListener("click", clearFilterAll);
+      document.getElementById("exportPairs").addEventListener("click", exportPairsCSV);
+      document.getElementById("exportReactors").addEventListener("click", exportReactorsCSV);
+
+      /* ---------- Stopwords ---------- */
+      const stopWords = new Set([
+        "the", "and", "to", "a", "i", "you", "it", "is", "in", "for", "of", "on", "that", "this",
+        "we", "are", "was", "with", "as", "be", "have", "not", "but", "they", "at", "or", "an",
+        "so", "if", "from", "by", "what", "your", "do", "me", "my", "im", "u", "lol"
+      ]);
+
+      /* ---------- Initial ---------- */
+      document.getElementById("overviewStats").innerHTML =
+        '<div class="stat"><div style="font-weight:700">Load data</div><div class="small">Choose or paste JSON</div></div>';
+
+      setStatus("Ready. Load JSON to begin.");
+    </script>
 </body>
+
 </html>
