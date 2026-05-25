@@ -1,0 +1,29 @@
+body {
+    background-color: rgba(17, 0, 255, 0.596);
+}
+
+main {
+    max-width: 50%;
+    margin: auto;
+    padding: 20px;
+    border-radius: 20px;
+    background-color: rgb(219, 196, 255);
+}
+
+ul {
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    margin: 5px;
+    list-style: none;
+}
+
+a {
+    width: fit-content;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgb(127, 255, 133);
+    text-decoration: none;
+}
