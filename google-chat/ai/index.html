@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Persona Chat (Auto File Load)</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        #chat {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            height: 250px;
+            overflow-y: auto;
+        }
+
+        .msg {
+            margin-bottom: 10px;
+        }
+
+        .user {
+            font-weight: bold;
+            color: #0077cc;
+        }
+
+        .bot {
+            font-weight: bold;
+            color: #cc0077;
+        }
+
+        #inputArea {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background: #0077cc;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #005fa3;
+        }
+
+        #progressContainer {
+            margin-top: 10px;
+            width: 100%;
+            background: #ddd;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: #0077cc;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Persona Chat (Auto File Load + Progress Bar)</h2>
+
+    <input type="file" id="fileInput" accept=".json">
+
+    <div id="progressContainer">
+        <div id="progressBar"></div>
+    </div>
+
+    <div id="fileStatus"></div>
+
+    <div id="chat"></div>
+
+    <div id="inputArea">
+        <input id="msgInput" type="text" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let messages = [];
+
+        const chat = document.getElementById("chat");
+        const input = document.getElementById("msgInput");
+        const fileStatus = document.getElementById("fileStatus");
+        const progressContainer = document.getElementById("progressContainer");
+        const progressBar = document.getElementById("progressBar");
+
+        function addMessage(sender, text) {
+            const div = document.createElement("div");
+            div.className = "msg";
+            div.innerHTML = `<span class="${sender}">${sender}:</span> ${text}`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Auto-load when file is selected
+        document.getElementById("fileInput").addEventListener("change", () => {
+            const file = document.getElementById("fileInput").files[0];
+            if (!file) return;
+            loadFile(file);
+        });
+
+        async function loadFile(file) {
+            fileStatus.textContent = "Reading file...";
+            progressContainer.style.display = "block";
+            progressBar.style.width = "0%";
+
+            const text = await file.text();
+            let raw;
+
+            try {
+                raw = JSON.parse(text);
+            } catch {
+                fileStatus.textContent = "Invalid JSON file.";
+                return;
+            }
+
+            // Detect structure
+            let rawMessages = [];
+
+            if (Array.isArray(raw)) {
+                rawMessages = raw;
+            } else if (Array.isArray(raw.messages)) {
+                rawMessages = raw.messages;
+            } else if (Array.isArray(raw.conversations)) {
+                for (const conv of raw.conversations) {
+                    if (!Array.isArray(conv.events)) continue;
+                    for (const ev of conv.events) {
+                        if (ev.message) {
+                            rawMessages.push({
+                                text: ev.message.text || "",
+                                sender: ev.message.sender || "unknown",
+                                timestamp: ev.message.createTime || null
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Chunked processing with progress bar
+            messages = [];
+            const chunkSize = 500;
+
+            for (let i = 0; i < rawMessages.length; i += chunkSize) {
+                const chunk = rawMessages.slice(i, i + chunkSize);
+
+                for (const m of chunk) messages.push(m);
+
+                const pct = Math.floor((i / rawMessages.length) * 100);
+                progressBar.style.width = pct + "%";
+
+                await new Promise(requestAnimationFrame);
+            }
+
+            progressBar.style.width = "100%";
+            fileStatus.textContent = `Loaded ${messages.length} messages.`;
+        }
+
+        function fakePersonaReply(userMsg) {
+            if (messages.length > 0) {
+                const random = messages[Math.floor(Math.random() * messages.length)];
+                return random.text || "Loaded message has no text field.";
+            }
+            return "Tell me more.";
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage("user", text);
+            input.value = "";
+
+            setTimeout(() => {
+                const reply = fakePersonaReply(text.toLowerCase());
+                addMessage("bot", reply);
+            }, 300);
+        }
+    </script>
+
+</body>
+
+</html>
