@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>History Persona Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app" role="application" aria-label="History persona chat">
+        <aside class="panel left" aria-label="Controls">
+            <header class="panel-header">
+                <div>
+                    <h1 class="title">Upload Export</h1>
+                    <p class="subtitle">Auto-detect Google Chat / simple exports</p>
+                </div>
+                <div class="header-controls">
+                    <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌓</button>
+                    <button id="muteBtn" class="icon-btn" aria-label="Toggle mute">🔈</button>
+                    <button id="settingsBtn" class="icon-btn" aria-label="Open settings">⚙️</button>
+                </div>
+            </header>
+
+            <div class="file-row">
+                <input id="fileInput" type="file" accept=".json" aria-label="Upload JSON export">
+                <button id="clearBtn" class="btn secondary" title="Clear loaded data">Clear</button>
+            </div>
+
+            <div class="progress-wrap" id="progressContainer" aria-hidden="true">
+                <div id="progressBar" class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                    aria-valuenow="0"></div>
+            </div>
+
+            <div id="fileStatus" class="status">No file loaded</div>
+
+            <section class="people-section" aria-label="People list">
+                <h2 class="section-title">People Found</h2>
+                <div id="peopleMeta" class="people-meta">—</div>
+                <div class="people">
+                    <ul id="peopleList" aria-live="polite"></ul>
+                </div>
+            </section>
+        </aside>
+
+        <main class="panel chat-wrap" aria-label="Chat area">
+            <header class="chat-header">
+                <div>
+                    <h1 class="title">Chat</h1>
+                    <div id="selectedPersonaLabel" class="small">No persona selected</div>
+                </div>
+                <div id="messagesMeta" class="small">Messages: 0</div>
+            </header>
+
+            <section id="chat" class="chat" role="log" aria-live="polite" aria-atomic="false"></section>
+
+            <form id="composer" class="composer" action="javascript:void(0)" aria-label="Message composer">
+                <input id="msgInput" type="text" placeholder="Type a message (press Enter to send)"
+                    aria-label="Message input" autocomplete="off">
+                <button id="sendBtn" class="btn" type="submit">Send</button>
+            </form>
+
+            <div class="note">Short, focused replies pulled from your export. Select a persona on the left.</div>
+        </main>
+    </div>
+
+    <!-- Settings modal -->
+    <div id="settingsModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Settings">
+        <div class="modal-content" role="document">
+            <h3>Settings</h3>
+
+            <label class="setting-row">
+                <span>Theme</span>
+                <select id="themeSelect">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </label>
+
+            <label class="setting-row">
+                <span>Sounds</span>
+                <input id="soundsToggle" type="checkbox" />
+            </label>
+
+            <label class="setting-row">
+                <span>Volume</span>
+                <input id="volumeSlider" type="range" min="0" max="100" value="80" />
+            </label>
+
+            <label class="setting-row">
+                <span>Motion</span>
+                <input id="motionToggle" type="checkbox" />
+            </label>
+
+            <div class="modal-actions">
+                <button id="saveSettings" class="btn">Save</button>
+                <button id="closeSettings" class="btn secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+
+</html>
