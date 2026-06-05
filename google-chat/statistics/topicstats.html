@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Topic Tracker — Fixed Topic Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #071022;
+            --muted: #9aa7bf;
+            --accent: #ff6b6b;
+            --accent-2: #7c5cff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.06);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            padding: 22px;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+            background: linear-gradient(180deg, #061021 0%, #071022 100%);
+            color: #e6eef8;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 18px
+        }
+
+        header {
+            grid-column: 1/-1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        /* Left panel: topic manager */
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+            height: calc(100vh - 80px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 10px
+        }
+
+        .add-row {
+            display: flex;
+            gap: 8px
+        }
+
+        .input-text {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: transparent;
+            color: inherit
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: #fff;
+            border: 0;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--muted)
+        }
+
+        /* Topic list */
+        .topic-list {
+            margin-top: 12px;
+            flex: 1;
+            overflow: auto;
+            padding-right: 6px;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .topic-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%
+        }
+
+        .topic-text {
+            font-weight: 600
+        }
+
+        .topic-meta {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .topic-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.02);
+            color: #fff
+        }
+
+        /* small controls row */
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .chip {
+            padding: 6px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        /* Right panel: main content */
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid var(--card-border);
+        }
+
+        .card-title {
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .progress {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 999px;
+            overflow: hidden
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #2dd4bf);
+            transition: width .16s linear
+        }
+
+        .chart-wrapper {
+            min-height: 300px;
+            position: relative
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 300px !important
+        }
+
+        /* responsive */
+        @media (max-width:980px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 14px
+            }
+
+            .panel {
+                height: auto;
+                order: 2
+            }
+
+            .main {
+                order: 1
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Topic Tracker</h1>
+                <p>Manage topics easily — add, color, enable/disable, and delete from a scrollable list.</p>
+            </div>
+            <div class="chip">Washougal local time applied to timestamps</div>
+        </header>
+
+        <!-- Left: Topic Manager -->
+        <aside class="panel" id="topicPanel">
+            <div>
+                <div class="panel-title">Topics</div>
+                <div class="small">Add words, phrases, or regex. Click a topic to toggle active. Use the trash to
+                    delete.</div>
+
+                <div class="add-row">
+                    <input id="topicInput" class="input-text" placeholder="Type a word/phrase and press Enter" />
+                    <button id="addBtn" class="btn">Add</button>
+                </div>
+
+                <div class="controls">
+                    <button id="clearAll" class="btn secondary">Clear All</button>
+                    <button id="importBtn" class="btn secondary">Import</button>
+                    <button id="exportBtn" class="btn secondary">Export</button>
+                </div>
+            </div>
+
+            <div class="topic-list" id="topicList" aria-label="Topic list">
+                <!-- topic items injected here -->
+            </div>
+
+            <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+                Tip: press Enter to add. Click a chip to toggle match mode (word → phrase → regex).
+            </div>
+        </aside>
+
+        <!-- Right: Main content -->
+        <main class="main">
+            <div class="card">
+                <div class="card-title">1. Load Google Chat JSON</div>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <input id="fileInput" type="file" accept=".json" />
+                    <div id="fileName" style="color:var(--muted)">No file selected</div>
+                </div>
+                <div style="margin-top:10px" class="progress" id="loadProg">
+                    <div class="progress-bar" id="loadBar"></div>
+                </div>
+                <div id="loadStatus" style="margin-top:8px;color:var(--muted);font-size:13px"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. Process & Graph</div>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <button id="runBtn" class="btn">Process Selected Topics</button>
+                    <div style="color:var(--muted);font-size:13px" id="procStatus"></div>
+                </div>
+                <div style="margin-top:10px" class="progress" id="procProg">
+                    <div class="progress-bar" id="procBar"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">3. Word activity over time</div>
+                <div class="chart-wrapper">
+                    <canvas id="chart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* Topic Manager + Simple Tracker
+           - Scrollable list of topics with add/delete/toggle
+           - Persist topics to localStorage
+           - Integrates with the simple processing/chart logic
+        */
+
+        // Move palette up so defaultTopics can reference it safely
+        const palette = ['#ff6b6b', '#7c5cff', '#2dd4bf', '#ffd166', '#3a86ff', '#ff7ab6', '#8d99ae'];
+
+        const STORAGE_KEY = 'topicTracker.topics.v1';
+
+        // DOM
+        const topicInput = document.getElementById('topicInput');
+        const addBtn = document.getElementById('addBtn');
+        const topicList = document.getElementById('topicList');
+        const clearAll = document.getElementById('clearAll');
+        const importBtn = document.getElementById('importBtn');
+        const exportBtn = document.getElementById('exportBtn');
+
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const loadProg = document.getElementById('loadProg');
+        const loadBar = document.getElementById('loadBar');
+        const loadStatus = document.getElementById('loadStatus');
+
+        const runBtn = document.getElementById('runBtn');
+        const procProg = document.getElementById('procProg');
+        const procBar = document.getElementById('procBar');
+        const procStatus = document.getElementById('procStatus');
+
+        const chartCanvas = document.getElementById('chart');
+
+        let messages = [];
+        let chart = null;
+
+        // Topic model: { id, text, mode: 'word'|'phrase'|'regex', color, active }
+        let topics = loadTopics();
+
+        // helpers
+        function uid() { return Math.random().toString(36).slice(2, 9); }
+
+        function saveTopics() { localStorage.setItem(STORAGE_KEY, JSON.stringify(topics)); }
+        function loadTopics() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return defaultTopics();
+                const parsed = JSON.parse(raw);
+                // ensure parsed is an array and has required fields
+                if (!Array.isArray(parsed)) return defaultTopics();
+                return parsed.map(p => ({
+                    id: p.id || uid(),
+                    text: (p.text || '').toString(),
+                    mode: p.mode || 'word',
+                    color: p.color || palette[0],
+                    active: typeof p.active === 'boolean' ? p.active : true
+                }));
+            } catch (e) { return defaultTopics(); }
+        }
+        function defaultTopics() {
+            return [
+                { id: uid(), text: 'food', mode: 'word', color: palette[0], active: true },
+                { id: uid(), text: 'help', mode: 'word', color: palette[1], active: true },
+            ];
+        }
+
+        // render
+        function renderTopics() {
+            topicList.innerHTML = '';
+            if (!topics.length) {
+                const empty = document.createElement('div');
+                empty.style.color = 'var(--muted)';
+                empty.style.fontSize = '13px';
+                empty.textContent = 'No topics yet. Add one above.';
+                topicList.appendChild(empty);
+                return;
+            }
+
+            topics.forEach((t, idx) => {
+                const item = document.createElement('div');
+                item.className = 'topic-item';
+                item.dataset.id = t.id;
+
+                const left = document.createElement('div');
+                left.className = 'topic-left';
+
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.style.background = t.color;
+
+                const textWrap = document.createElement('div');
+                const text = document.createElement('div');
+                text.className = 'topic-text';
+                text.textContent = t.text + (t.mode === 'regex' ? ' (regex)' : (t.mode === 'phrase' ? ' (phrase)' : ''));
+
+                const meta = document.createElement('div');
+                meta.className = 'topic-meta';
+                meta.textContent = t.active ? 'active' : 'disabled';
+
+                textWrap.appendChild(text);
+                textWrap.appendChild(meta);
+
+                left.appendChild(dot);
+                left.appendChild(textWrap);
+
+                const actions = document.createElement('div');
+                actions.className = 'topic-actions';
+
+                // toggle active
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'icon-btn';
+                toggleBtn.title = 'Toggle active';
+                toggleBtn.innerHTML = t.active ? '🟢' : '⚪';
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    t.active = !t.active;
+                    saveTopics(); renderTopics();
+                });
+
+                // cycle mode
+                const modeBtn = document.createElement('button');
+                modeBtn.className = 'icon-btn';
+                modeBtn.title = 'Cycle match mode (word → phrase → regex)';
+                modeBtn.innerHTML = '🔁';
+                modeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    t.mode = t.mode === 'word' ? 'phrase' : (t.mode === 'phrase' ? 'regex' : 'word');
+                    saveTopics(); renderTopics();
+                });
+
+                // color picker (simple cycle)
+                const colorBtn = document.createElement('button');
+                colorBtn.className = 'icon-btn';
+                colorBtn.title = 'Change color';
+                colorBtn.innerHTML = '🎨';
+                colorBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const next = palette[(palette.indexOf(t.color) + 1) % palette.length];
+                    t.color = next;
+                    saveTopics(); renderTopics();
+                });
+
+                // delete
+                const delBtn = document.createElement('button');
+                delBtn.className = 'icon-btn';
+                delBtn.title = 'Delete topic';
+                delBtn.innerHTML = '🗑️';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    topics = topics.filter(x => x.id !== t.id);
+                    saveTopics(); renderTopics();
+                });
+
+                actions.appendChild(toggleBtn);
+                actions.appendChild(modeBtn);
+                actions.appendChild(colorBtn);
+                actions.appendChild(delBtn);
+
+                item.appendChild(left);
+                item.appendChild(actions);
+
+                // clicking the item toggles active quickly
+                item.addEventListener('click', () => {
+                    t.active = !t.active;
+                    saveTopics(); renderTopics();
+                });
+
+                topicList.appendChild(item);
+            });
+        }
+
+        // add topic
+        function addTopic(text) {
+            text = (text || '').trim();
+            if (!text) return;
+            // avoid duplicates (case-insensitive)
+            if (topics.some(t => t.text.toLowerCase() === text.toLowerCase())) {
+                flashStatus('Topic already exists', true); return;
+            }
+            const color = palette[topics.length % palette.length];
+            topics.unshift({ id: uid(), text, mode: 'word', color, active: true });
+            saveTopics(); renderTopics();
+            flashStatus(`Added "${text}"`);
+        }
+
+        // small status flash
+        function flashStatus(msg, isError) {
+            procStatus.textContent = msg;
+            procStatus.style.color = isError ? '#ffb3b3' : '#bfe9d7';
+            setTimeout(() => { procStatus.textContent = ''; procStatus.style.color = ''; }, 2200);
+        }
+
+        // wire UI
+        addBtn.addEventListener('click', () => { addTopic(topicInput.value); topicInput.value = ''; topicInput.focus(); });
+        topicInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { addTopic(topicInput.value); topicInput.value = ''; } });
+
+        clearAll.addEventListener('click', () => {
+            if (!confirm('Clear all topics?')) return;
+            topics = []; saveTopics(); renderTopics();
+        });
+
+        importBtn.addEventListener('click', async () => {
+            const txt = prompt('Paste JSON array of topics (text,mode,color,active) or comma-separated words:');
+            if (!txt) return;
+            try {
+                if (txt.trim().startsWith('[')) {
+                    const arr = JSON.parse(txt);
+                    arr.forEach(a => {
+                        if (typeof a === 'string') addTopic(a);
+                        else if (a && a.text) {
+                            topics.unshift({ id: uid(), text: a.text, mode: a.mode || 'word', color: a.color || palette[0], active: a.active !== false });
+                        }
+                    });
+                } else {
+                    txt.split(',').map(s => s.trim()).filter(Boolean).forEach(s => addTopic(s));
+                }
+                saveTopics(); renderTopics();
+                flashStatus('Imported topics');
+            } catch (e) { flashStatus('Import failed', true); }
+        });
+
+        exportBtn.addEventListener('click', () => {
+            const exportData = topics.map(t => ({ text: t.text, mode: t.mode, color: t.color, active: t.active }));
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'topics.json'; a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // initial render
+        renderTopics();
+
+        // ----------------- File loading and processing -----------------
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName.textContent = file.name;
+            loadProg.style.opacity = '1'; loadBar.style.width = '0%'; loadStatus.textContent = '';
+            const reader = new FileReader();
+            const start = performance.now();
+            reader.onprogress = (evt) => { if (evt.lengthComputable) loadBar.style.width = ((evt.loaded / evt.total) * 100) + '%'; };
+            reader.onload = (evt) => {
+                loadBar.style.width = '100%';
+                const minVisible = 350; const elapsed = performance.now() - start; const remaining = Math.max(0, minVisible - elapsed);
+                setTimeout(() => {
+                    try {
+                        const json = JSON.parse(evt.target.result);
+                        messages = json.messages || [];
+                        loadStatus.textContent = `Loaded ${messages.length} messages.`;
+                    } catch (e) {
+                        messages = []; loadStatus.textContent = 'Invalid JSON file';
+                    }
+                    setTimeout(() => { loadBar.style.width = '0%'; }, 300);
+                }, remaining);
+            };
+            reader.readAsText(file);
+        });
+
+        // date parsing & tokenizing (robust)
+        function parseGoogleChatDate(str) {
+            if (!str || typeof str !== 'string') return null;
+            str = str.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
+            str = str.replace(/^[A-Za-z]+,\s*/, '').replace(' at ', ' ');
+            if (!/GMT|UTC|[A-Z]{2,}/.test(str)) str += ' UTC';
+            str = str.replace(' UTC', ' GMT');
+            const d = new Date(str);
+            return isNaN(d) ? null : d;
+        }
+        function localDay(date) { return date.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }); }
+        function tokenize(text) { return text.toLowerCase().replace(/[^a-z0-9\s']/g, ' ').split(/\s+/).filter(Boolean); }
+
+        // processing
+        runBtn.addEventListener('click', () => {
+            if (!messages.length) { flashStatus('Load a JSON file first', true); return; }
+            const activeTopics = topics.filter(t => t.active);
+            if (!activeTopics.length) { flashStatus('No active topics selected', true); return; }
+
+            runBtn.disabled = true;
+            procBar.style.width = '0%';
+
+            // quick visible start
+            setTimeout(() => procBar.style.width = '18%', 40);
+
+            const counts = {}; // {bucket: {topicText: count}}
+            const total = messages.length;
+            const start = performance.now();
+
+            for (let i = 0; i < total; i++) {
+                const msg = messages[i];
+                const progressPct = 18 + (i / total) * 78;
+                if (!msg || !msg.text || !msg.created_date) { procBar.style.width = progressPct + '%'; continue; }
+                const date = parseGoogleChatDate(msg.created_date);
+                if (!date) { procBar.style.width = progressPct + '%'; continue; }
+                const bucket = localDay(date);
+                const tokens = tokenize(msg.text);
+
+                for (const t of activeTopics) {
+                    if (t.mode === 'regex') {
+                        try {
+                            const re = new RegExp(t.text, 'i');
+                            if (re.test(msg.text)) { counts[bucket] = counts[bucket] || {}; counts[bucket][t.text] = (counts[bucket][t.text] || 0) + 1; }
+                        } catch (e) { }
+                    } else if (t.mode === 'phrase') {
+                        if (msg.text.toLowerCase().includes(t.text.toLowerCase())) { counts[bucket] = counts[bucket] || {}; counts[bucket][t.text] = (counts[bucket][t.text] || 0) + 1; }
+                    } else { // word
+                        for (const token of tokens) if (token === t.text.toLowerCase()) { counts[bucket] = counts[bucket] || {}; counts[bucket][t.text] = (counts[bucket][t.text] || 0) + 1; }
+                    }
+                }
+                procBar.style.width = progressPct + '%';
+            }
+
+            procBar.style.width = '100%';
+            const minVisible = 600; const elapsed = performance.now() - start; const remaining = Math.max(0, minVisible - elapsed);
+            setTimeout(() => { procBar.style.width = '0%'; runBtn.disabled = false; }, remaining + 260);
+
+            const labels = Object.keys(counts).sort();
+            if (!labels.length) { flashStatus('No matches found for selected topics', true); if (chart) { chart.destroy(); chart = null; } return; }
+
+            const datasets = activeTopics.map((t, idx) => ({
+                label: t.text,
+                data: labels.map(k => counts[k] && counts[k][t.text] ? counts[k][t.text] : 0),
+                borderColor: t.color,
+                backgroundColor: 'transparent',
+                tension: 0.25,
+                pointRadius: 2
+            }));
+
+            if (chart) chart.destroy();
+            chart = new Chart(chartCanvas.getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Count' } },
+                        x: { title: { display: true, text: 'Day (Washougal, WA)' } }
+                    }
+                }
+            });
+
+            flashStatus(`Processed ${messages.length} messages`);
+        });
+
+        // initial small UX polish: focus input
+        topicInput.focus();
+    </script>
+</body>
+
+</html>
