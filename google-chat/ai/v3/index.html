@@ -4,104 +4,1237 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>History Persona Chat</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Historical AI</title>
+    <style>
+        :root {
+            /* Core palette */
+            --bg-1: #050914;
+            --bg-2: #0a0f1c;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --card-border: rgba(120, 160, 255, 0.16);
+            --glass: rgba(255, 255, 255, 0.03);
+
+            --text: #e8eef7;
+            --muted: #aeb7c5;
+            --accent: #4da3ff;
+            --accent-soft: rgba(77, 163, 255, 0.18);
+
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --radius-pill: 999px;
+
+            --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.45);
+            --shadow-strong: 0 16px 40px rgba(0, 0, 0, 0.65);
+
+            --border-subtle: 1px solid rgba(255, 255, 255, 0.04);
+
+            --transition-fast: 0.18s ease-out;
+            --transition-med: 0.25s ease-out;
+        }
+
+        /* Base */
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #101b3a 0%, transparent 40%),
+                radial-gradient(circle at bottom right, #0b2338 0%, transparent 45%),
+                linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 60%, #050814 100%);
+            color: var(--text);
+            padding: 18px;
+            box-sizing: border-box;
+        }
+
+        /* Layout */
+
+        .app {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 18px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0;
+            color: #ffffff;
+            letter-spacing: 0.03em;
+        }
+
+        .small {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Panels & cards */
+
+        .panel {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.6));
+            border-radius: var(--radius-lg);
+            padding: 14px 14px 16px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at top left, rgba(77, 163, 255, 0.16), transparent 55%);
+            opacity: 0.7;
+            mix-blend-mode: screen;
+        }
+
+        .panel>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.7));
+            padding: 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+            transition: transform var(--transition-med), box-shadow var(--transition-med), border-color var(--transition-med), background var(--transition-med);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-strong);
+            border-color: rgba(120, 160, 255, 0.4);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.8));
+        }
+
+        /* Form elements */
+
+        .file-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            color: transparent;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px 9px;
+            border-radius: 9px;
+            border: var(--border-subtle);
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.04), transparent 55%), var(--glass);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+        }
+
+        select::placeholder,
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(174, 183, 197, 0.7);
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            border-color: rgba(77, 163, 255, 0.7);
+            box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.4), 0 0 18px rgba(77, 163, 255, 0.25);
+            background: radial-gradient(circle at top left, rgba(77, 163, 255, 0.12), transparent 60%), var(--glass);
+            transform: translateY(-1px);
+        }
+
+        textarea {
+            min-height: 84px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+
+        button {
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.16), transparent 55%), linear-gradient(135deg, var(--accent), #7bb8ff);
+            color: #ffffff;
+            border: 0;
+            padding: 8px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 10px 24px rgba(77, 163, 255, 0.45);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast), background-position 0.3s ease-out;
+            background-size: 140% 140%;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px rgba(77, 163, 255, 0.6);
+            filter: brightness(1.05);
+            background-position: 0% 50%;
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 16px rgba(77, 163, 255, 0.5);
+            filter: brightness(0.97);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            padding: 6px 9px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+            box-shadow: none;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(120, 160, 255, 0.5);
+            background: rgba(77, 163, 255, 0.08);
+            color: #dfe8ff;
+            transform: translateY(-1px);
+        }
+
+        /* Text helpers */
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .small-muted {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Stats */
+
+        .stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 9px;
+            border-radius: 9px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Results */
+
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 8px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            color: var(--muted);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .confidence {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .snippet {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .reason {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            margin-left: 6px;
+        }
+
+        /* Controls */
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .topbar-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-preview {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* Thread & messages */
+
+        .thread {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px;
+            border-radius: 9px;
+            margin-top: 8px;
+            max-height: 240px;
+            overflow: auto;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .msg {
+            padding: 6px 7px;
+            border-radius: 7px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .msg .who {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .msg .when {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .msg.me {
+            background: rgba(77, 163, 255, 0.08);
+            border: 1px solid rgba(77, 163, 255, 0.35);
+            box-shadow: 0 6px 18px rgba(77, 163, 255, 0.25);
+        }
+
+        .msg.them {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .msg:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Footer */
+
+        footer {
+            grid-column: 1 / -1;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* Utility */
+
+        .flex {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .danger {
+            color: #ff6b6b;
+        }
+
+        .note {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        /* Loader */
+
+        .loader {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.06);
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        /* Motion & keyframes */
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -120% 0;
+            }
+
+            100% {
+                background-position: 120% 0;
+            }
+        }
+
+        /* Apply subtle entrance to main panels */
+
+        .app>.panel {
+            opacity: 0;
+            animation: fadeUp 0.45s ease-out forwards;
+        }
+
+        .app>.panel:nth-of-type(2) {
+            animation-delay: 0.06s;
+        }
+
+        /* Optional shimmer class for loading states */
+
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+            background-size: 220% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 980px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .left {
+                order: 2;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="app" role="application" aria-label="History persona chat">
-        <aside class="panel left" aria-label="Controls">
-            <header class="panel-header">
-                <div>
-                    <h1 class="title">Upload Export</h1>
-                    <p class="subtitle">Auto-detect Google Chat / simple exports</p>
-                </div>
-                <div class="header-controls">
-                    <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌓</button>
-                    <button id="muteBtn" class="icon-btn" aria-label="Toggle mute">🔈</button>
-                    <button id="settingsBtn" class="icon-btn" aria-label="Open settings">⚙️</button>
-                </div>
-            </header>
+    <div class="app">
+        <header>
+            <div>
+                <h1>Historical AI</h1>
+                <div class="small">Upload a Google Chat export (messages.json). Select a person, type a prompt, get
+                    their historical replies.</div>
+            </div>
+            <div class="topbar-controls">
+                <div id="tzDisplay" class="tiny">Timezone: <strong>America/Los_Angeles</strong></div>
+                <div id="status" class="tiny muted">Idle</div>
+            </div>
+        </header>
 
-            <div class="file-row">
-                <input id="fileInput" type="file" accept=".json" aria-label="Upload JSON export">
-                <button id="clearBtn" class="btn secondary" title="Clear loaded data">Clear</button>
+        <!-- Left column: controls -->
+        <div class="left">
+            <div class="panel">
+                <div class="file-row">
+                    <input id="fileInput" type="file" accept=".json,application/json" />
+                    <button id="clearBtn" class="btn-ghost">Clear</button>
+                </div>
+                <div id="loadProgress" class="small-muted" style="margin-top:8px">No file loaded</div>
+                <div style="margin-top:10px" class="stats" id="statsPanel"></div>
             </div>
 
-            <div class="progress-wrap" id="progressContainer" aria-hidden="true">
-                <div id="progressBar" class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                    aria-valuenow="0"></div>
-            </div>
-
-            <div id="fileStatus" class="status">No file loaded</div>
-
-            <section class="people-section" aria-label="People list">
-                <h2 class="section-title">People Found</h2>
-                <div id="peopleMeta" class="people-meta">—</div>
-                <div class="people">
-                    <ul id="peopleList" aria-live="polite"></ul>
-                </div>
-            </section>
-        </aside>
-
-        <main class="panel chat-wrap" aria-label="Chat area">
-            <header class="chat-header">
-                <div>
-                    <h1 class="title">Chat</h1>
-                    <div id="selectedPersonaLabel" class="small">No persona selected</div>
-                </div>
-                <div id="messagesMeta" class="small">Messages: 0</div>
-            </header>
-
-            <section id="chat" class="chat" role="log" aria-live="polite" aria-atomic="false"></section>
-
-            <form id="composer" class="composer" action="javascript:void(0)" aria-label="Message composer">
-                <input id="msgInput" type="text" placeholder="Type a message (press Enter to send)"
-                    aria-label="Message input" autocomplete="off">
-                <button id="sendBtn" class="btn" type="submit">Send</button>
-            </form>
-
-            <div class="note">Short, focused replies pulled from your export. Select a persona on the left.</div>
-        </main>
-    </div>
-
-    <!-- Settings modal -->
-    <div id="settingsModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Settings">
-        <div class="modal-content" role="document">
-            <h3>Settings</h3>
-
-            <label class="setting-row">
-                <span>Theme</span>
-                <select id="themeSelect">
-                    <option value="system">System</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
+            <div class="panel">
+                <label class="small-muted">Select person to chat with</label>
+                <select id="authorSelect">
+                    <option value="">— load a file —</option>
                 </select>
-            </label>
+                <div id="authorInfo" class="tiny" style="margin-top:8px"></div>
+            </div>
 
-            <label class="setting-row">
-                <span>Sounds</span>
-                <input id="soundsToggle" type="checkbox" />
-            </label>
+            <div class="panel">
+                <label class="small-muted">Prompt (what you'd say to them)</label>
+                <textarea id="promptInput" placeholder="Type your message to the selected person..."></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button id="submitPrompt">Find replies</button>
+                    <button id="showDebug" class="btn-ghost">Debug</button>
+                    <div id="spinner" class="loader hidden" title="working"></div>
+                </div>
+                <div id="previewTokens" class="search-preview"></div>
+                <div id="noResultsReason" class="note" style="display:none"></div>
+            </div>
 
-            <label class="setting-row">
-                <span>Volume</span>
-                <input id="volumeSlider" type="range" min="0" max="100" value="80" />
-            </label>
+            <div class="panel">
+                <div class="controls">
+                    <div class="small-muted">Tuning</div>
+                    <div class="sliders">
+                        <div>
+                            <label class="tiny">Length weight <span id="lengthWVal">0.6</span></label>
+                            <input id="lengthW" type="range" min="0" max="1" step="0.05" value="0.6" />
+                        </div>
+                        <div>
+                            <label class="tiny">Overlap weight <span id="overlapWVal">0.3</span></label>
+                            <input id="overlapW" type="range" min="0" max="1" step="0.05" value="0.3" />
+                        </div>
+                        <div>
+                            <label class="tiny">Phrase bonus <span id="phraseVal">0.12</span></label>
+                            <input id="phraseB" type="range" min="0" max="0.5" step="0.02" value="0.12" />
+                        </div>
+                        <div>
+                            <label class="tiny">Author boost <span id="authorVal">0.25</span></label>
+                            <input id="authorBoost" type="range" min="0" max="0.6" step="0.05" value="0.25" />
+                        </div>
+                    </div>
+                    <div style="margin-top:8px" class="tiny">Max replies shown: <input id="topM" type="number" min="1"
+                            max="20" value="6" style="width:60px;display:inline-block;margin-left:6px" /></div>
+                    <div class="tiny" style="margin-top:6px">Max parent candidates: <input id="maxParents" type="number"
+                            min="10" max="1000" value="200" style="width:80px;display:inline-block;margin-left:6px" />
+                    </div>
+                </div>
+            </div>
 
-            <label class="setting-row">
-                <span>Motion</span>
-                <input id="motionToggle" type="checkbox" />
-            </label>
-
-            <div class="modal-actions">
-                <button id="saveSettings" class="btn">Save</button>
-                <button id="closeSettings" class="btn secondary">Close</button>
+            <div class="panel">
+                <div class="small-muted">Advanced</div>
+                <div style="margin-top:8px" class="tiny">Timezone override:
+                    <select id="tzSelect" style="width:160px;margin-left:8px">
+                        <option value="America/Los_Angeles">America/Los_Angeles (default)</option>
+                        <option value="UTC">UTC</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Europe/London">Europe/London</option>
+                    </select>
+                </div>
+                <div style="margin-top:8px" class="tiny">Long message cutoff percentile:
+                    <input id="cutoffPct" type="number" min="80" max="99" value="95"
+                        style="width:60px;margin-left:8px" />%
+                </div>
             </div>
         </div>
+
+        <!-- Right column: results -->
+        <div>
+            <div class="panel">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div><strong>Results</strong>
+                        <div class="tiny muted">Candidate replies from the selected person</div>
+                    </div>
+                    <div class="flex">
+                        <div id="resultsCount" class="tiny muted">—</div>
+                    </div>
+                </div>
+                <div id="results" class="results" style="margin-top:12px"></div>
+            </div>
+
+            <div class="panel" id="debugPanel" style="margin-top:12px;display:none">
+                <div><strong>Debug / Parent Candidates</strong></div>
+                <div id="parentsDebug" style="margin-top:8px"></div>
+            </div>
+        </div>
+
+        <footer>All processing is local in your browser. Use the tuning sliders to adjust matching behavior.</footer>
     </div>
 
-    <script src="app.js" defer></script>
+    <script>
+        /* Single-file Chat-With implementation (patched)
+           - Preprocess messages.json (including annotations)
+           - Build indexes: messageStore, topicMap, authorMap, invertedIndex
+           - Prompt preprocessing with synonym expansion for short queries
+           - Parent retrieval with substring fallback for single-token queries
+           - Extract replies authored by selected person (quoted or next-in-thread)
+           - Deduplicate, rank, and render results
+        */
+
+        /* -------------------------
+           Constants & Stopwords
+           ------------------------- */
+        const DEFAULT_TZ = 'America/Los_Angeles';
+        let TZ = DEFAULT_TZ;
+
+        const STOPWORDS = new Set([
+            "a", "an", "and", "the", "or", "but", "if", "then", "else", "on", "in", "at", "to", "for", "of", "by", "with", "is", "are", "was", "were", "be", "been", "being", "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "them", "this", "that", "these", "those", "from", "as", "so", "do", "did", "does", "have", "has", "had", "not", "no", "yes", "ok", "okay"
+        ]);
+
+        // small synonyms map to help greetings and short queries
+        const SYNONYMS = {
+            "hello": ["hi", "hey", "hiya", "hello", "yo", "sup"],
+            "hi": ["hello", "hey", "hiya"],
+            "hey": ["hi", "hello"],
+            "hiya": ["hi", "hello"],
+            "thanks": ["thank", "thx", "ty"]
+        };
+
+        const DEFAULTS = {
+            lengthWeight: 0.6,
+            overlapWeight: 0.3,
+            phraseBonus: 0.12,
+            authorBoost: 0.25,
+            recencyWeight: 0.02
+        };
+
+        /* -------------------------
+           App state (in-memory)
+           ------------------------- */
+        let messageStore = new Map(); // id -> record
+        let topicMap = new Map(); // topic_id -> [records sorted by ts_utc]
+        let authorMap = new Map(); // email -> {name, email, messages: [ids], count, firstSeen, lastSeen}
+        let invertedIndex = new Map(); // token -> Set(ids)
+        let stats = { totalMessages: 0, authors: 0, topics: 0, cutoffToken: 500 };
+        let sessionCache = new Map(); // simple cache for queries
+
+        /* -------------------------
+           Utilities
+           ------------------------- */
+        function decodeHtmlEntities(s) {
+            if (!s) return '';
+            try {
+                s = String(s).replace(/\\u([0-9a-fA-F]{4})/g, (_, g) => String.fromCharCode(parseInt(g, 16)));
+                const txt = document.createElement('textarea');
+                txt.innerHTML = s;
+                return txt.value;
+            } catch (e) { return s; }
+        }
+
+        function normalizeWhitespace(s) {
+            return s.replace(/\u202F|\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function parseExportDate(raw) {
+            if (!raw) return Date.now();
+            let s = String(raw).replace(/\u202F|\u00A0/g, ' ').trim();
+            if (!/UTC$/i.test(s)) s = s + ' UTC';
+            const t = Date.parse(s);
+            if (!isNaN(t)) return t;
+            s = s.replace(/^[A-Za-z]+,\s*/, '');
+            const t2 = Date.parse(s + ' UTC');
+            return isNaN(t2) ? Date.now() : t2;
+        }
+
+        function toLocalString(epoch, tz = TZ) {
+            try {
+                return new Date(epoch).toLocaleString('en-US', { timeZone: tz, year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' });
+            } catch (e) {
+                return new Date(epoch).toLocaleString();
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        }
+
+        function percentile(arr, p) {
+            if (!arr.length) return 0;
+            const a = Array.from(arr).sort((x, y) => x - y);
+            const idx = Math.floor((p / 100) * (a.length - 1));
+            return a[Math.max(0, Math.min(a.length - 1, idx))];
+        }
+
+        function tokenizeNorm(s) {
+            if (!s) return [];
+            const norm = decodeHtmlEntities(s).toLowerCase().replace(/[^\w'\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!norm) return [];
+            const toks = norm.split(' ').map(t => t.trim()).filter(Boolean);
+            return toks.filter(t => !STOPWORDS.has(t));
+        }
+
+        function makeNgrams(tokens, n) {
+            const out = new Set();
+            for (let i = 0; i + n <= tokens.length; i++) {
+                out.add(tokens.slice(i, i + n).join(' '));
+            }
+            return out;
+        }
+
+        function normalizeForDedupe(s) {
+            return decodeHtmlEntities(s).toLowerCase().replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        /* -------------------------
+           Preprocessing & Indexing
+           ------------------------- */
+        function clearData() {
+            messageStore.clear(); topicMap.clear(); authorMap.clear(); invertedIndex.clear(); sessionCache.clear();
+            stats = { totalMessages: 0, authors: 0, topics: 0, cutoffToken: 500 };
+            document.getElementById('authorSelect').innerHTML = '<option value="">— load a file —</option>';
+            document.getElementById('statsPanel').innerHTML = '';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('resultsCount').textContent = '—';
+            document.getElementById('loadProgress').textContent = 'No file loaded';
+            document.getElementById('status').textContent = 'Idle';
+            document.getElementById('noResultsReason').style.display = 'none';
+        }
+
+        function preprocessMessages(rawJson, tz = TZ) {
+            clearData();
+            const arr = rawJson && rawJson.messages ? rawJson.messages : [];
+            const records = [];
+            for (const m of arr) {
+                const id = m.message_id || (Math.random().toString(36).slice(2, 10));
+                const topic = m.topic_id || 'default';
+                const author_name = (m.creator && (m.creator.name || m.creator.email)) || 'unknown';
+                const author_email = (m.creator && m.creator.email) || (m.creator && m.creator.name) || 'unknown@local';
+                const ts_utc = parseExportDate(m.created_date || m.updated_date || m.createdAt);
+                const ts_local = toLocalString(ts_utc, tz);
+
+                // text extraction: include annotations/title/snippet if text missing
+                let text = (m.text === undefined || m.text === null) ? '' : String(m.text);
+                if (!text && Array.isArray(m.annotations) && m.annotations.length) {
+                    const a = m.annotations[0].url_metadata || {};
+                    text = (a.title || a.snippet || '') + ' ' + text;
+                }
+                // include previous_message_versions text if present and no text
+                if (!text && Array.isArray(m.previous_message_versions) && m.previous_message_versions.length) {
+                    text = (m.previous_message_versions[0].text || '') + ' ' + text;
+                }
+
+                const decoded = decodeHtmlEntities(text);
+                const norm_text = normalizeWhitespace(decoded);
+                const tokens = tokenizeNorm(norm_text);
+                const token_length = tokens.length;
+                const char_length = norm_text.length;
+                const quoted = m.quoted_message_metadata ? (m.quoted_message_metadata.text || '') : null;
+                const is_system = /updated room membership|space updated|joined the space|left the space|added|removed/i.test(norm_text);
+                const has_reactions = Array.isArray(m.reactions) && m.reactions.length > 0;
+                const rec = {
+                    id, topic, author_email, author_name, ts_utc, ts_local, text: decoded, norm_text, tokens, token_length, char_length, quoted_text: quoted, is_system, has_reactions, raw: m
+                };
+                records.push(rec);
+            }
+
+            // compute cutoff
+            const lengths = records.map(r => r.token_length);
+            const pct = Number(document.getElementById('cutoffPct').value) || 95;
+            const pctVal = percentile(lengths, pct);
+            const absoluteCap = 500;
+            const cutoff = Math.min(absoluteCap, Math.max(50, pctVal || 200));
+            stats.cutoffToken = cutoff;
+
+            // populate stores
+            for (const r of records) {
+                r.eligible_as_response = (r.token_length <= stats.cutoffToken) && !r.is_system && r.token_length > 0;
+                messageStore.set(r.id, r);
+                // topic map
+                if (!topicMap.has(r.topic)) topicMap.set(r.topic, []);
+                topicMap.get(r.topic).push(r);
+                // author map
+                if (!authorMap.has(r.author_email)) authorMap.set(r.author_email, { name: r.author_name, email: r.author_email, messages: [], count: 0, firstSeen: r.ts_utc, lastSeen: r.ts_utc });
+                const a = authorMap.get(r.author_email);
+                a.messages.push(r.id);
+                a.count++;
+                if (r.ts_utc < a.firstSeen) a.firstSeen = r.ts_utc;
+                if (r.ts_utc > a.lastSeen) a.lastSeen = r.ts_utc;
+                // inverted index
+                for (const t of r.tokens) {
+                    if (!invertedIndex.has(t)) invertedIndex.set(t, new Set());
+                    invertedIndex.get(t).add(r.id);
+                }
+            }
+
+            // sort topic threads by ts_utc
+            for (const [k, arrTopic] of topicMap.entries()) {
+                arrTopic.sort((a, b) => a.ts_utc - b.ts_utc);
+            }
+
+            stats.totalMessages = records.length;
+            stats.authors = authorMap.size;
+            stats.topics = topicMap.size;
+
+            // populate UI author select
+            const sel = document.getElementById('authorSelect');
+            sel.innerHTML = '<option value="">— choose person —</option>';
+            const authors = Array.from(authorMap.values()).sort((x, y) => y.count - x.count);
+            for (const a of authors) {
+                const opt = document.createElement('option');
+                opt.value = a.email;
+                opt.textContent = `${a.name} — ${a.email} (${a.count})`;
+                sel.appendChild(opt);
+            }
+
+            document.getElementById('loadProgress').textContent = `Loaded ${stats.totalMessages} messages, ${stats.authors} people, ${stats.topics} topics. Long-message cutoff: ${stats.cutoffToken} tokens.`;
+            document.getElementById('statsPanel').innerHTML = `<div class="stat">Messages: ${stats.totalMessages}</div><div class="stat">People: ${stats.authors}</div><div class="stat">Topics: ${stats.topics}</div><div class="stat">Cutoff: ${stats.cutoffToken}</div>`;
+            document.getElementById('status').textContent = 'Ready';
+            return { messageStore, topicMap, authorMap, invertedIndex, stats };
+        }
+
+        /* -------------------------
+           Prompt preprocessing & retrieval
+           ------------------------- */
+        function preprocessPrompt(prompt) {
+            const raw = String(prompt || '');
+            const decoded = decodeHtmlEntities(raw);
+            const norm = normalizeWhitespace(decoded).toLowerCase();
+            const baseTokens = tokenizeNorm(norm);
+            const phrases = new Set();
+            for (let n = 2; n <= 4; n++) {
+                for (const p of makeNgrams(baseTokens, n)) phrases.add(p);
+            }
+            // expand synonyms for short queries
+            const expanded = new Set(baseTokens);
+            if (baseTokens.length <= 3) {
+                for (const t of baseTokens) {
+                    const syn = SYNONYMS[t];
+                    if (syn) syn.forEach(s => expanded.add(s));
+                }
+            }
+            const tokensExpanded = Array.from(expanded);
+            return { raw, norm, tokens: tokensExpanded, phrases, length: tokensExpanded.length };
+        }
+
+        function findParentCandidates(query, opts = {}) {
+            const maxParents = Number(document.getElementById('maxParents').value) || 200;
+            const qlen = Math.max(1, query.length);
+            const tokenHits = new Set();
+            for (const t of query.tokens) {
+                const s = invertedIndex.get(t);
+                if (!s) continue;
+                for (const id of s) tokenHits.add(id);
+            }
+
+            // If no token hits for short queries, do a substring scan for the token (case-insensitive)
+            if (tokenHits.size === 0 && query.tokens.length <= 3 && query.tokens.length > 0) {
+                const q0 = query.tokens[0].toLowerCase();
+                for (const m of messageStore.values()) {
+                    if (m.norm_text && m.norm_text.toLowerCase().includes(q0)) {
+                        tokenHits.add(m.id);
+                    }
+                    if (tokenHits.size > 1000) break; // safety cap
+                }
+            }
+
+            // fallback: if still empty, sample recent messages
+            if (tokenHits.size === 0) {
+                const recent = Array.from(messageStore.values()).sort((a, b) => b.ts_utc - a.ts_utc).slice(0, 500);
+                for (const r of recent) tokenHits.add(r.id);
+            }
+
+            const candidates = [];
+            for (const id of tokenHits) {
+                const m = messageStore.get(id);
+                if (!m) continue;
+                if (m.is_system) continue;
+                const mlen = Math.max(1, m.token_length);
+                const lenRatio = mlen / qlen;
+                // allow wider window for very short queries
+                if (qlen <= 3) {
+                    if (mlen > 400) continue;
+                } else {
+                    if (lenRatio < 0.35 || lenRatio > 3.0) continue;
+                }
+                const len_score = 1 - (Math.abs(mlen - qlen) / Math.max(mlen, qlen, 1));
+                const overlapCount = query.tokens.filter(t => m.tokens.includes(t)).length;
+                const overlap = query.tokens.length ? (overlapCount / query.tokens.length) : 0;
+                let phraseBonus = 0;
+                for (const p of query.phrases) {
+                    if (m.norm_text && m.norm_text.includes(p)) { phraseBonus = Number(document.getElementById('phraseB').value) || DEFAULTS.phraseBonus; break; }
+                }
+                const daysAgo = (Date.now() - m.ts_utc) / (1000 * 60 * 60 * 24);
+                const recencyBonus = Math.max(0, 1 - Math.min(365, daysAgo) / 365) * (DEFAULTS.recencyWeight || 0.02);
+                const final = (Number(document.getElementById('lengthW').value) * len_score) +
+                    (Number(document.getElementById('overlapW').value) * overlap) +
+                    phraseBonus + recencyBonus;
+                candidates.push({ id: m.id, score: final, len_score, overlap, phraseBonus, recencyBonus, m });
+            }
+
+            candidates.sort((a, b) => b.score - a.score);
+            return candidates.slice(0, maxParents);
+        }
+
+        /* -------------------------
+           Reply extraction & ranking
+           ------------------------- */
+        function extractRepliesForPerson(parents, personEmail, opts = {}) {
+            const fallbackWindow = 6; // messages in-thread to check
+            const globalWindowMinutes = opts.globalWindowMinutes || 10; // minutes after parent to search globally
+            const collected = [];
+            const seen = new Set();
+
+            for (const p of parents) {
+                const parent = p.m;
+                const thread = topicMap.get(parent.topic) || [];
+
+                // 1) Primary: explicit quoted replies by person in same thread
+                for (const msg of thread) {
+                    if (msg.author_email !== personEmail) continue;
+                    if (!msg.quoted_text && msg.raw && msg.raw.quoted_message_metadata) {
+                        msg.quoted_text = msg.raw.quoted_message_metadata.text || msg.quoted_text;
+                    }
+                    if (msg.quoted_text && parent.norm_text && msg.quoted_text.includes(parent.norm_text.slice(0, Math.min(80, parent.norm_text.length)))) {
+                        if (msg.eligible_as_response) {
+                            const key = msg.id + '::' + parent.id;
+                            if (!seen.has(key)) { collected.push({ parentId: parent.id, parentScore: p.score, reply: msg, reason: 'quoted' }); seen.add(key); }
+                        }
+                    }
+                }
+
+                // 2) Fallback A: next K chronological messages by person in same thread
+                const idx = thread.findIndex(t => t.id === parent.id);
+                if (idx >= 0) {
+                    for (let i = idx + 1; i < thread.length && i <= idx + fallbackWindow; i++) {
+                        const m = thread[i];
+                        if (m.author_email === personEmail && m.eligible_as_response) {
+                            const key = m.id + '::' + parent.id;
+                            if (!seen.has(key)) { collected.push({ parentId: parent.id, parentScore: p.score, reply: m, reason: 'next-in-thread' }); seen.add(key); }
+                        }
+                    }
+                }
+
+                // 3) Fallback B: global time-window search (captures replies outside the thread)
+                // Only run if we haven't already found replies for this parent
+                const foundForParent = Array.from(seen).some(k => k.endsWith('::' + parent.id));
+                if (!foundForParent) {
+                    const windowMs = (globalWindowMinutes || 10) * 60 * 1000;
+                    const startTs = parent.ts_utc;
+                    const endTs = parent.ts_utc + windowMs;
+                    let globalCount = 0;
+                    for (const m of messageStore.values()) {
+                        if (m.author_email !== personEmail) continue;
+                        if (!m.eligible_as_response) continue;
+                        if (m.ts_utc >= startTs && m.ts_utc <= endTs) {
+                            // avoid duplicates if already captured
+                            const key = m.id + '::' + parent.id;
+                            if (!seen.has(key)) {
+                                collected.push({ parentId: parent.id, parentScore: p.score * 0.8, reply: m, reason: 'global-time-window' });
+                                seen.add(key);
+                                globalCount++;
+                            }
+                        }
+                        if (globalCount >= 10) break; // safety cap per parent
+                    }
+                }
+            }
+
+            return collected;
+        }
+
+        function groupAndDedupeReplies(replies) {
+            const groups = new Map();
+            for (const r of replies) {
+                const txt = normalizeForDedupe(r.reply.text || r.reply.norm_text || '');
+                if (!txt) continue;
+                if (!groups.has(txt)) groups.set(txt, { text: r.reply.text, norm: txt, replies: [], authors: new Set(), parentScores: [], latestTs: 0, count: 0 });
+                const g = groups.get(txt);
+                g.replies.push(r);
+                g.authors.add(r.reply.author_email);
+                g.parentScores.push(r.parentScore);
+                g.count++;
+                if (r.reply.ts_utc > g.latestTs) g.latestTs = r.reply.ts_utc;
+            }
+            const out = [];
+            for (const [k, g] of groups.entries()) {
+                out.push({
+                    text: g.text,
+                    norm: g.norm,
+                    count: g.count,
+                    maxParentScore: Math.max(...g.parentScores),
+                    latestTs: g.latestTs,
+                    authors: Array.from(g.authors),
+                    replies: g.replies
+                });
+            }
+            return out;
+        }
+
+        function scoreReply(group, personEmail) {
+            const parentComponent = group.maxParentScore || 0;
+            const freqComponent = Math.min(1, group.count / 10);
+            const recencyDays = (Date.now() - group.latestTs) / (1000 * 60 * 60 * 24);
+            const recencyComponent = Math.max(0, 1 - Math.min(365, recencyDays) / 365);
+            const authorBoost = (group.authors.includes(personEmail) ? Number(document.getElementById('authorBoost').value) : 0);
+            const lengthPenalty = (group.norm.split(' ').length > stats.cutoffToken * 0.6) ? 0.12 : 0;
+            const final = (Number(document.getElementById('lengthW').value) * parentComponent) +
+                (Number(document.getElementById('overlapW').value) * freqComponent) +
+                (Number(document.getElementById('phraseB').value) * recencyComponent) +
+                authorBoost - lengthPenalty;
+            return Object.assign({}, group, { score: final, confidence: Math.max(0, Math.min(1, final)) });
+        }
+
+        /* -------------------------
+           Rendering
+           ------------------------- */
+        function renderResults(groups, personEmail) {
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+            const topM = Number(document.getElementById('topM').value) || 6;
+            const scored = groups.map(g => scoreReply(g, personEmail)).sort((a, b) => b.score - a.score);
+            const sorted = scored.slice(0, topM);
+            document.getElementById('resultsCount').textContent = `${sorted.length} replies`;
+            for (const g of sorted) {
+                const card = document.createElement('div'); card.className = 'card';
+                const meta = document.createElement('div'); meta.className = 'meta';
+                const left = document.createElement('div');
+                left.innerHTML = `<div style="font-weight:700">${escapeHtml(g.text)}</div>`;
+                const sub = document.createElement('div'); sub.className = 'snippet';
+                sub.textContent = `Appears ${g.count} time(s). Latest: ${toLocalString(g.latestTs)}`;
+                left.appendChild(sub);
+                meta.appendChild(left);
+                const right = document.createElement('div'); right.style.textAlign = 'right';
+                right.innerHTML = `<div class="confidence">${(g.score || 0).toFixed(2)}</div><div class="badge">${g.authors.join(', ')}</div>`;
+                meta.appendChild(right);
+                card.appendChild(meta);
+
+                // parent snippets (show up to 2)
+                const ul = document.createElement('div'); ul.style.marginTop = '6px';
+                let shown = 0;
+                for (const r of (g.replies || [])) {
+                    if (shown >= 2) break;
+                    const parent = messageStore.get(r.parentId);
+                    if (!parent) continue;
+                    const pSnippet = parent.norm_text.length > 160 ? parent.norm_text.slice(0, 160) + '…' : parent.norm_text;
+                    const el = document.createElement('div');
+                    el.className = 'snippet';
+                    el.innerHTML = `<em>In response to:</em> "${escapeHtml(pSnippet)}" — <span class="tiny muted">${escapeHtml(parent.author_name)} • ${toLocalString(parent.ts_utc)}</span>`;
+                    ul.appendChild(el);
+                    shown++;
+                }
+                if (shown) card.appendChild(ul);
+
+                // actions
+                const actions = document.createElement('div'); actions.className = 'result-actions';
+                const copyBtn = document.createElement('button'); copyBtn.className = 'btn-ghost'; copyBtn.textContent = 'Copy';
+                copyBtn.onclick = () => { navigator.clipboard.writeText(g.text); copyBtn.textContent = 'Copied'; setTimeout(() => copyBtn.textContent = 'Copy', 1200); };
+                const useBtn = document.createElement('button'); useBtn.className = 'btn-ghost'; useBtn.textContent = 'Use';
+                useBtn.onclick = () => { document.getElementById('promptInput').value = g.text; document.getElementById('previewTokens').textContent = ''; };
+                const expandBtn = document.createElement('button'); expandBtn.className = 'btn-ghost'; expandBtn.textContent = 'Show thread';
+                expandBtn.onclick = () => { showThreadForGroup(g); };
+                actions.appendChild(copyBtn); actions.appendChild(useBtn); actions.appendChild(expandBtn);
+                card.appendChild(actions);
+
+                container.appendChild(card);
+            }
+        }
+
+        /* Thread view for a group: show parent and surrounding messages */
+        function showThreadForGroup(group) {
+            const any = group.replies && group.replies[0];
+            if (!any) return;
+            const parent = messageStore.get(any.parentId);
+            const thread = topicMap.get(parent.topic) || [];
+            const idx = thread.findIndex(t => t.id === parent.id);
+            const start = Math.max(0, idx - 4);
+            const end = Math.min(thread.length, idx + 6);
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed'; modal.style.left = '50%'; modal.style.top = '50%'; modal.style.transform = 'translate(-50%,-50%)';
+            modal.style.width = '80%'; modal.style.maxHeight = '70%'; modal.style.overflow = 'auto'; modal.style.zIndex = 9999;
+            modal.style.background = 'linear-gradient(180deg, rgba(8,12,20,0.98), rgba(6,10,16,0.98))'; modal.style.border = '1px solid rgba(255,255,255,0.04)';
+            modal.style.padding = '14px'; modal.style.borderRadius = '12px';
+            const close = document.createElement('button'); close.textContent = 'Close'; close.className = 'btn-ghost';
+            close.onclick = () => document.body.removeChild(modal);
+            modal.appendChild(close);
+            const title = document.createElement('h3'); title.style.marginTop = '8px'; title.textContent = `Thread view — topic ${parent.topic}`;
+            modal.appendChild(title);
+            const threadDiv = document.createElement('div'); threadDiv.className = 'thread';
+            for (let i = start; i < end; i++) {
+                const m = thread[i];
+                const mdiv = document.createElement('div'); mdiv.className = 'msg ' + (m.author_email === document.getElementById('authorSelect').value ? 'me' : 'them');
+                mdiv.innerHTML = `<div class="who">${escapeHtml(m.author_name)} <span class="when">• ${toLocalString(m.ts_utc)}</span></div><div class="text">${escapeHtml(m.text)}</div>`;
+                if (m.id === parent.id) mdiv.style.outline = '2px solid rgba(43,108,176,0.25)';
+                threadDiv.appendChild(mdiv);
+            }
+            modal.appendChild(threadDiv);
+            document.body.appendChild(modal);
+        }
+
+        /* -------------------------
+           Event wiring
+           ------------------------- */
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            document.getElementById('status').textContent = 'Loading file...';
+            const txt = await f.text();
+            let json;
+            try {
+                json = JSON.parse(txt);
+            } catch (err) {
+                alert('Invalid JSON file. Please provide the messages.json export.');
+                document.getElementById('status').textContent = 'Idle';
+                return;
+            }
+            TZ = document.getElementById('tzSelect').value || DEFAULT_TZ;
+            document.getElementById('tzDisplay').innerHTML = `Timezone: <strong>${TZ}</strong>`;
+            preprocessMessages(json, TZ);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            clearData();
+            document.getElementById('fileInput').value = '';
+        });
+
+        document.getElementById('authorSelect').addEventListener('change', (e) => {
+            const email = e.target.value;
+            if (!email) { document.getElementById('authorInfo').textContent = ''; return; }
+            const a = authorMap.get(email);
+            if (!a) return;
+            document.getElementById('authorInfo').innerHTML = `${escapeHtml(a.name)} • ${a.email} • ${a.count} messages • last seen ${toLocalString(a.lastSeen)}`;
+        });
+
+        document.getElementById('submitPrompt').addEventListener('click', async () => {
+            const prompt = document.getElementById('promptInput').value || '';
+            const personEmail = document.getElementById('authorSelect').value;
+            document.getElementById('noResultsReason').style.display = 'none';
+            if (!personEmail) { alert('Please select a person to chat with.'); return; }
+            if (!prompt.trim()) { alert('Please type a prompt.'); return; }
+            document.getElementById('spinner').classList.remove('hidden');
+            document.getElementById('status').textContent = 'Searching...';
+            const q = preprocessPrompt(prompt);
+            document.getElementById('previewTokens').textContent = `Tokens: ${q.tokens.join(', ')}`;
+            const cacheKey = personEmail + '||' + q.norm;
+            if (sessionCache.has(cacheKey)) {
+                const cached = sessionCache.get(cacheKey);
+                if (cached.groups && cached.groups.length) {
+                    renderResults(cached.groups, personEmail);
+                    document.getElementById('spinner').classList.add('hidden');
+                    document.getElementById('status').textContent = 'Ready (cached)';
+                    return;
+                }
+            }
+            const parents = findParentCandidates(q);
+            const dbg = document.getElementById('parentsDebug'); dbg.innerHTML = '';
+            for (const p of parents.slice(0, 10)) {
+                const el = document.createElement('div'); el.className = 'tiny muted';
+                el.innerHTML = `<strong>${escapeHtml(p.m.author_name)}</strong> • ${toLocalString(p.m.ts_utc)} — score ${(p.score || 0).toFixed(3)} — "${escapeHtml((p.m.norm_text || '').slice(0, 120))}"`;
+                dbg.appendChild(el);
+            }
+            // extract replies
+            const replies = extractRepliesForPerson(parents, personEmail);
+            if (replies.length === 0) {
+                // determine reason: no parents vs no replies by person
+                const parentCount = parents.length;
+                let reasonText = '';
+                if (parentCount === 0) {
+                    reasonText = 'No parent messages matched your prompt. Try synonyms (hi, hey), broaden the prompt, or increase Max parent candidates.';
+                } else {
+                    reasonText = `Found ${parentCount} parent candidate(s) but no replies by the selected person in those threads. Try selecting a different person or increasing the fallback window.`;
+                }
+                document.getElementById('noResultsReason').textContent = reasonText;
+                document.getElementById('noResultsReason').style.display = 'block';
+                document.getElementById('results').innerHTML = '';
+                document.getElementById('resultsCount').textContent = '0 replies';
+                sessionCache.set(cacheKey, { groups: [] });
+                document.getElementById('spinner').classList.add('hidden');
+                document.getElementById('status').textContent = 'Ready';
+                return;
+            }
+            const grouped = groupAndDedupeReplies(replies);
+            sessionCache.set(cacheKey, { groups: grouped });
+            renderResults(grouped, personEmail);
+            document.getElementById('spinner').classList.add('hidden');
+            document.getElementById('status').textContent = 'Ready';
+        });
+
+        document.getElementById('showDebug').addEventListener('click', () => {
+            const dbgPanel = document.getElementById('debugPanel');
+            dbgPanel.style.display = dbgPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        /* sliders binding */
+        const lengthW = document.getElementById('lengthW'), overlapW = document.getElementById('overlapW'), phraseB = document.getElementById('phraseB'), authorBoost = document.getElementById('authorBoost');
+        lengthW.addEventListener('input', () => document.getElementById('lengthWVal').textContent = lengthW.value);
+        overlapW.addEventListener('input', () => document.getElementById('overlapWVal').textContent = overlapW.value);
+        phraseB.addEventListener('input', () => document.getElementById('phraseVal').textContent = phraseB.value);
+        authorBoost.addEventListener('input', () => document.getElementById('authorVal').textContent = authorBoost.value);
+
+        /* timezone override */
+        document.getElementById('tzSelect').addEventListener('change', (e) => {
+            TZ = e.target.value;
+            document.getElementById('tzDisplay').innerHTML = `Timezone: <strong>${TZ}</strong>`;
+            if (messageStore.size) {
+                for (const m of messageStore.values()) {
+                    m.ts_local = toLocalString(m.ts_utc, TZ);
+                }
+                const sel = document.getElementById('authorSelect').value;
+                if (sel && authorMap.has(sel)) {
+                    const a = authorMap.get(sel);
+                    document.getElementById('authorInfo').innerHTML = `${escapeHtml(a.name)} • ${a.email} • ${a.count} messages • last seen ${toLocalString(a.lastSeen, TZ)}`;
+                }
+            }
+        });
+
+        /* small helper to load sample data for testing (exposed) */
+        window.__TEST_HELPERS__ = {
+            loadSample(json) { preprocessMessages(json, TZ); },
+            runQuery(prompt, email) { document.getElementById('promptInput').value = prompt; document.getElementById('authorSelect').value = email; document.getElementById('submitPrompt').click(); },
+            dumpStats() { return stats; }
+        };
+
+    </script>
 </body>
 
 </html>
