@@ -909,9 +909,13 @@
       </div>
       <div id="librarySelectionToolbar" class="toolbar" style="display:none; gap:8px; flex-wrap:wrap; align-items:center;">
         <span id="selectionCount" class="muted">0 selected</span>
+        <select id="selectedPlaylistSelect" class="theme-option-select" style="min-width:160px; max-width:240px;">
+          <option value="">Select playlist</option>
+        </select>
         <button id="selectAllBtn" class="pill-btn">Select all</button>
         <button id="deselectAllBtn" class="pill-btn">Deselect all</button>
         <button id="moveSelectedBtn" class="pill-btn primary" disabled>Move selected</button>
+        <button id="addSelectedToPlaylistBtn" class="pill-btn" disabled>Add selected to playlist</button>
       </div>
       <div id="libraryList" class="card-list"></div>
     </section>
@@ -1040,6 +1044,8 @@
     const selectAllBtn = document.getElementById('selectAllBtn');
     const deselectAllBtn = document.getElementById('deselectAllBtn');
     const moveSelectedBtn = document.getElementById('moveSelectedBtn');
+    const addSelectedToPlaylistBtn = document.getElementById('addSelectedToPlaylistBtn');
+    const selectedPlaylistSelect = document.getElementById('selectedPlaylistSelect');
     const recentList = document.getElementById('recentList');
     const homePlaylists = document.getElementById('homePlaylists');
     const playlistList = document.getElementById('playlistList');
@@ -1760,6 +1766,7 @@
       renderHome();
       renderLibrary();
       renderPlaylists();
+      updatePlaylistDropdownOptions();
       renderQueue();
       renderPlayer();
       renderMiniPlayer();
@@ -1804,6 +1811,12 @@
       librarySelectionToolbar.style.display = visibleTrackIds && visibleTrackIds.size > 0 ? 'flex' : 'none';
       selectionCount.textContent = `${selectedCount} selected`;
       moveSelectedBtn.disabled = selectedCount === 0;
+      if (addSelectedToPlaylistBtn) {
+        addSelectedToPlaylistBtn.disabled = selectedCount === 0 || !selectedPlaylistSelect?.value || playlists.length === 0;
+      }
+      if (selectedPlaylistSelect) {
+        selectedPlaylistSelect.disabled = playlists.length === 0;
+      }
     }
 
     function renderLibrary() {
@@ -2142,6 +2155,67 @@
       renderAll();
     }
 
+    async function addTracksToPlaylist(playlistId, trackIds) {
+      const playlist = getPlaylistById(playlistId);
+      if (!playlist || !Array.isArray(trackIds) || trackIds.length === 0) return;
+      trackIds.forEach(trackId => {
+        if (!playlist.trackIds.includes(trackId)) {
+          playlist.trackIds.push(trackId);
+        }
+      });
+      await savePlaylists();
+      renderAll();
+    }
+
+    function updatePlaylistDropdownOptions() {
+      if (!selectedPlaylistSelect) return;
+      if (!playlists.length) {
+        selectedPlaylistSelect.innerHTML = '<option value="">No playlists</option>';
+        selectedPlaylistSelect.disabled = true;
+        if (addSelectedToPlaylistBtn) addSelectedToPlaylistBtn.disabled = true;
+        return;
+      }
+      selectedPlaylistSelect.innerHTML = playlists.map(playlist => `<option value="${playlist.id}">${escapeHtml(playlist.name)}</option>`).join('');
+      selectedPlaylistSelect.disabled = false;
+      if (addSelectedToPlaylistBtn) {
+        addSelectedToPlaylistBtn.disabled = selectedLibraryTrackIds.size === 0;
+      }
+    }
+
+    function openPlaylistPickerForSelectedTracks(trackIds) {
+      if (!Array.isArray(trackIds) || trackIds.length === 0) return;
+      if (!playlists.length) {
+        openModal('Create a playlist', `<input id="newPlaylistName" placeholder="Playlist name" /><div class="actions"><button class="primary-btn" id="createPlaylistFromPicker">Create</button></div>`);
+        document.getElementById('createPlaylistFromPicker').addEventListener('click', async () => {
+          const name = document.getElementById('newPlaylistName').value.trim();
+          if (!name) return;
+          const playlist = { id: `playlist-${Date.now()}`, name, trackIds: [] };
+          playlists.unshift(playlist);
+          await savePlaylists();
+          closeModal();
+          await addTracksToPlaylist(playlist.id, trackIds);
+        });
+        return;
+      }
+
+      const items = playlists.map(playlist => `<button class="pill-btn" data-playlist-id="${playlist.id}">${escapeHtml(playlist.name)}</button>`).join('');
+      openModal('Add selected songs to playlist', `<div class="card-list">${items}</div><div class="actions" style="margin-top:8px;"><button class="primary-btn" id="createPlaylistFromPicker">New playlist</button></div>`);
+      modalBody.querySelectorAll('[data-playlist-id]').forEach(btn => btn.addEventListener('click', async () => {
+        await addTracksToPlaylist(btn.dataset.playlistId, trackIds);
+        closeModal();
+      }));
+      document.getElementById('createPlaylistFromPicker').addEventListener('click', async () => {
+        const name = window.prompt('Playlist name');
+        if (!name) return;
+        const playlist = { id: `playlist-${Date.now()}`, name, trackIds: [] };
+        playlists.unshift(playlist);
+        await savePlaylists();
+        await addTracksToPlaylist(playlist.id, trackIds);
+        closeModal();
+        renderAll();
+      });
+    }
+
     function openLibraryPicker(playlistId) {
       const pickerItems = tracks.map(track => `<button class="pill-btn" data-track-id="${track.id}" data-playlist-id="${playlistId}">${escapeHtml(track.name || track.path || 'Untitled')}</button>`).join('');
       openModal('Add songs to playlist', `<div class="card-list">${pickerItems}</div>`);
@@ -2315,6 +2389,23 @@
       if (!selectedLibraryTrackIds.size) return;
       openMoveTracksModal(Array.from(selectedLibraryTrackIds));
     });
+
+    if (selectedPlaylistSelect) {
+      selectedPlaylistSelect.addEventListener('change', () => {
+        if (addSelectedToPlaylistBtn) {
+          addSelectedToPlaylistBtn.disabled = selectedLibraryTrackIds.size === 0 || !selectedPlaylistSelect.value;
+        }
+      });
+    }
+
+    if (addSelectedToPlaylistBtn) {
+      addSelectedToPlaylistBtn.addEventListener('click', async () => {
+        if (!selectedLibraryTrackIds.size || !selectedPlaylistSelect?.value) return;
+        await addTracksToPlaylist(selectedPlaylistSelect.value, Array.from(selectedLibraryTrackIds));
+        selectedLibraryTrackIds.clear();
+        renderAll();
+      });
+    }
 
     librarySearch.addEventListener('input', event => {
       libraryQuery = event.target.value;
