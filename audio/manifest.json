@@ -1,0 +1,17 @@
+{
+    "name": "Audio Flow",
+    "short_name": "Audio Flow",
+    "description": "A Spotify-inspired offline audio player for the web.",
+    "icons": [
+        {
+            "src": "icon.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#06121a",
+    "background_color": "#06121a",
+    "orientation": "portrait"
+}
