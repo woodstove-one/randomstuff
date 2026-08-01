@@ -4,13 +4,15 @@
     "description": "A Spotify-inspired offline audio player for the web.",
     "icons": [
         {
-            "src": "icon.svg",
+            "src": "/randomstuff/audio/icon.svg",
             "sizes": "512x512",
             "type": "image/svg+xml"
         }
     ],
-    "start_url": ".",
+    "start_url": "/randomstuff/audio/audiov15.html",
+    "scope": "/randomstuff/audio/",
     "display": "standalone",
+    "display_override": ["standalone"],
     "theme_color": "#06121a",
     "background_color": "#06121a",
     "orientation": "portrait"
