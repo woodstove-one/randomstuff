@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion Synth</title>
+<style>
+body {
+margin: 0;
+padding: 0;
+background: linear-gradient(135deg, #1e3c72, #2a5298);
+color: white;
+font-family: system-ui, -apple-system, sans-serif;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+height: 100vh;
+text-align: center;
+overflow: hidden;
+}
+h1 {
+font-size: 2rem;
+margin-bottom: 10px;
+}
+p {
+font-size: 1rem;
+color: #e0e0e0;
+max-width: 80%;
+margin-bottom: 30px;
+}
+button {
+padding: 15px 40px;
+font-size: 1.2rem;
+font-weight: bold;
+border: none;
+border-radius: 50px;
+background: #00f2fe;
+color: #1e3c72;
+cursor: pointer;
+box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+transition: transform 0.2s;
+}
+button:active {
+transform: scale(0.95);
+}
+.data-display {
+margin-top: 30px;
+font-family: monospace;
+background: rgba(0, 0, 0, 0.2);
+padding: 15px;
+border-radius: 10px;
+font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+
+<h1>Tilt Music Maker</h1>
+<p>Rotate your phone to change the pitch and volume of the music!</p>
+
+<button id="startBtn">Start Instrument</button>
+
+<div class="data-display">
+<div>Pitch (Beta): <span id="betaVal">0</span>°</div>
+<div>Volume (Gamma): <span id="gammaVal">0</span>°</div>
+</div>
+
+<script>
+let audioCtx = null;
+let oscillator = null;
+let gainNode = null;
+let isPlaying = false;
+
+const startBtn = document.getElementById('startBtn');
+const betaVal = document.getElementById('betaVal');
+const gammaVal = document.getElementById('gammaVal');
+
+// Initialize Audio Synthesizer
+function initAudio() {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+oscillator = audioCtx.createOscillator();
+gainNode = audioCtx.createGain();
+
+// 'sine' or 'triangle' sound smoother and "nicer" than 'square' or 'sawtooth'
+oscillator.type = 'triangle';
+
+// Set starting values
+oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4 note
+gainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Silent at start
+
+// Connect nodes together: Synth -> Volume Controller -> Speakers
+oscillator.connect(gainNode);
+gainNode.connect(audioCtx.destination);
+
+oscillator.start();
+}
+
+// Process the phone's tilt data
+function handleOrientation(event) {
+if (!isPlaying) return;
+
+// Beta tracking (front-to-back tilt: -180 to 180)
+let beta = event.beta;
+// Gamma tracking (left-to-right tilt: -90 to 90)
+let gamma = event.gamma;
+
+// Clean up numbers for the display screen
+betaVal.textContent = Math.round(beta);
+gammaVal.textContent = Math.round(gamma);
+
+// 1. Map Beta to Frequency (Pitch)
+// Clamp beta between 0 and 90 degrees for comfortable hand motion
+let targetBeta = Math.max(0, Math.min(90, beta));
+// Convert 0-90 degrees into a pleasant musical range (200Hz to 800Hz)
+let frequency = 200 + (targetBeta / 90) * 600;
+
+// Linear ramp prevents audio popping and smooths the transition
+oscillator.frequency.setTargetAtTime(frequency, audioCtx.currentTime, 0.05);
+
+// 2. Map Gamma to Volume
+// Use absolute value so tilting either left or right increases sound
+let absGamma = Math.abs(gamma);
+let targetGamma = Math.min(45, absGamma); // Clamp to 45 degrees max
+// Convert 0-45 degrees to a volume level between 0.0 (silent) and 0.4 (safely loud)
+let volume = (targetGamma / 45) * 0.4;
+
+gainNode.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.05);
+}
+
+// Handle permissions and activation toggle
+async function toggleInstrument() {
+if (isPlaying) {
+// Pause instrument
+gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+startBtn.textContent = "Start Instrument";
+startBtn.style.background = "#00f2fe";
+isPlaying = false;
+} else {
+// Initialize audio on first click
+if (!audioCtx) {
+initAudio();
+}
+
+// Modern iOS devices demand permission requests for sensors
+if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+try {
+const permissionState = await DeviceOrientationEvent.requestPermission();
+if (permissionState === 'granted') {
+window.addEventListener('deviceorientation', handleOrientation);
+startPermissionSuccess();
+} else {
+alert('Sensor access denied. Cannot track movement.');
+}
+} catch (error) {
+console.error(error);
+alert('Error requesting motion permissions.');
+}
+} else {
+// Non-iOS or older devices register directly
+window.addEventListener('deviceorientation', handleOrientation);
+startPermissionSuccess();
+}
+}
+}
+
+function startPermissionSuccess() {
+isPlaying = true;
+startBtn.textContent = "Stop Instrument";
+startBtn.style.background = "#ff4757";
+if (audioCtx.state === 'suspended') {
+audioCtx.resume();
+}
+}
+
+startBtn.addEventListener('click', toggleInstrument);
+</script>
+</body>
+</html>
