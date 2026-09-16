@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedural Motion Synth</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0f2027;
+            background-color: #00ffcc;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transition: all 0.2s;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .status {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .data {
+            margin-top: 15px;
+            font-size: 1rem;
+            color: white;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Procedural Motion Synth</h1>
+        <p>Rotate your phone to generate real-time synthesized music notes.</p>
+        
+        <!-- Button to start the audio context and sensors -->
+        <button id="startBtn">ACTIVATE SYNTH</button>
+        
+        <div class="status" id="statusText">Status: Standby</div>
+        <div class="data" id="rotationText">Tilt Angle: 0°</div>
+        <div class="data" id="noteText">Note: None</div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const statusText = document.getElementById('statusText');
+        const rotationText = document.getElementById('rotationText');
+        const noteText = document.getElementById('noteText');
+
+        let audioCtx = null;
+        let mainGain = null;
+        let isPlaying = false;
+        let noteInterval = null;
+        let currentTilt = 0;
+
+        // A pleasant pentatonic musical scale in frequencies (Hz)
+        // C4, D4, E4, G4, A4, C5, D5, E5, G5, A5
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+        // Function that creates a single synthetic musical note from scratch
+        function playSynthNote(frequency) {
+            if (!audioCtx) return;
+
+            // 1. Create the sound wave generator (Oscillator)
+            let osc = audioCtx.createOscillator();
+            // 2. Create a volume controller (Gain node) to fade notes out smoothly
+            let gainNode = audioCtx.createGain();
+
+            osc.type = 'triangle'; // Smooth, retro synth sound shape
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+            // Connect the components together: Synth -> Volume -> Main Speakers
+            osc.connect(gainNode);
+            gainNode.connect(mainGain);
+
+            // "Envelope" - Makes the sound pluck like a guitar string instead of a harsh beep
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05); // Fade in quickly
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8); // Fade out smoothly
+
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.8); // Stop making sound after 0.8 seconds
+        }
+
+        // The background music engine loop
+        function musicEngine() {
+            // Map the phone's physical tilt (-90 to 90 degrees) to our 10 musical notes
+            // Center is flat (no notes). Left/Right selects notes.
+            let absoluteTilt = Math.abs(currentTilt);
+
+            if (absoluteTilt > 10) {
+                // Determine which index of the scale array to play based on tilt steepness
+                let scaleIndex = Math.floor((absoluteTilt - 10) / 8); 
+                // Don't let it look past the end of our list of notes
+                scaleIndex = Math.min(scaleIndex, scale.length - 1);
+
+                let chosenFrequency = scale[scaleIndex];
+                
+                playSynthNote(chosenFrequency);
+                noteText.innerText = "Note Freq: " + Math.round(chosenFrequency) + " Hz";
+                statusText.innerText = "Status: 🔊 Generating Sound";
+            } else {
+                noteText.innerText = "Note: None (Hold flat to pause)";
+                statusText.innerText = "Status: ⏸️ Paused";
+            }
+        }
+
+        // This tracks the phone's tilt real-time
+        function handleMotion(event) {
+            let gamma = event.gamma; // Left-to-right wheel tilt
+            if (gamma === null) return;
+
+            currentTilt = Math.round(gamma);
+            rotationText.innerText = "Tilt Angle: " + currentTilt + "°";
+        }
+
+        // When the user taps the button
+        startBtn.addEventListener('click', async () => {
+            // Initialize Web Audio API
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGain = audioCtx.createGain();
+            mainGain.gain.setValueAtTime(0.5, audioCtx.currentTime); // Master volume at 50%
+            mainGain.connect(audioCtx.destination);
+
+            // Start the infinite musical generator timer (ticks every 250 milliseconds)
+            if (!noteInterval) {
+                noteInterval = setInterval(musicEngine, 250);
+            }
+
+            // Request mobile motion sensor permission
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permissionState = await DeviceOrientationEvent.requestPermission();
+                    if (permissionState === 'granted') {
+                        window.addEventListener('deviceorientation', handleMotion);
+                        startBtn.style.display = 'none';
+                    } else {
+                        alert('Sensor access denied.');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Error setting up sensors.');
+                }
+            } else {
+                // Non-iOS or older devices
+                window.addEventListener('deviceorientation', handleMotion);
+                startBtn.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
