@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Sensors Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+        h1 { text-align: center; font-size: 1.5rem; }
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card h2 { margin-top: 0; font-size: 1.1rem; color: #0071e3; }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+        .data-item { background: #f5f5f7; padding: 8px; border-radius: 6px; }
+        .label { font-size: 0.8rem; color: #86868b; display: block; }
+        .value { font-family: monospace; font-size: 1.1rem; font-weight: bold; }
+        .btn-container { text-align: center; margin-bottom: 20px; }
+        button {
+            background-color: #0071e3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:hover { background-color: #0077ed; }
+        .error { color: #ff3b30; text-align: center; font-size: 0.9rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Phone Sensor Data</h1>
+
+    <div class="btn-container">
+        <button id="request-btn">Start Sensors</button>
+        <div id="error-message" class="error"></div>
+    </div>
+
+    <!-- Rotation Data Card -->
+    <div class="card">
+        <h2>🔄 Rotation (Device Orientation)</h2>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="label">Alpha (Z)</span>
+                <span id="alpha" class="value">0.00</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Beta (X)</span>
+                <span id="beta" class="value">0.00</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Gamma (Y)</span>
+                <span id="gamma" class="value">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acceleration Data Card -->
+    <div class="card">
+        <h2>🚀 Acceleration (With Gravity)</h2>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="label">X-Axis</span>
+                <span id="acc-x" class="value">0.00</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Y-Axis</span>
+                <span id="acc-y" class="value">0.00</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Z-Axis</span>
+                <span id="acc-z" class="value">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const requestBtn = document.getElementById('request-btn');
+        const errorMsg = document.getElementById('error-message');
+
+        // Setup UI update elements
+        const ui = {
+            alpha: document.getElementById('alpha'),
+            beta: document.getElementById('beta'),
+            gamma: document.getElementById('gamma'),
+            accX: document.getElementById('acc-x'),
+            accY: document.getElementById('acc-y'),
+            accZ: document.getElementById('acc-z')
+        };
+
+        // Activate sensor listeners
+        function startSensors() {
+            // 1. Rotation Event
+            window.addEventListener('deviceorientation', (event) => {
+                ui.alpha.textContent = event.alpha ? event.alpha.toFixed(2) : '0.00';
+                ui.beta.textContent = event.beta ? event.beta.toFixed(2) : '0.00';
+                ui.gamma.textContent = event.gamma ? event.gamma.toFixed(2) : '0.00';
+            });
+
+            // 2. Acceleration Event
+            window.addEventListener('devicemotion', (event) => {
+                const acc = event.accelerationIncludingGravity;
+                if (acc) {
+                    ui.accX.textContent = acc.x ? acc.x.toFixed(2) : '0.00';
+                    ui.accY.textContent = acc.y ? acc.y.toFixed(2) : '0.00';
+                    ui.accZ.textContent = acc.z ? acc.z.toFixed(2) : '0.00';
+                }
+            });
+
+            requestBtn.style.display = 'none'; // Hide button once tracking starts
+        }
+
+        // Request Permissions (Required primarily for iOS 13+)
+        requestBtn.addEventListener('click', () => {
+            // Check if standard Permission API exists (iOS specific)
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            startSensors();
+                        } else {
+                            errorMsg.textContent = 'Permission to access sensors was denied.';
+                        }
+                    })
+                    .catch(err => {
+                        errorMsg.textContent = 'Error requesting permissions: ' + err.message;
+                    });
+            } else {
+                // Non-iOS devices (Android) usually don't require explicit popup permission yet
+                startSensors();
+            }
+        });
+    </script>
+</body>
+</html>
